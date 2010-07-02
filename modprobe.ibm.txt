@@ -1,0 +1,2 @@
+alias eth0 8139cp
+alias scsi_hostadapter ata_piix
