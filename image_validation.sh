@@ -2,6 +2,12 @@
 
 FAILURES=0
 
+if [ -z $1 ];then
+ echo "ERROR:"
+ echo "please use --help"
+ exit 1
+fi
+
 #cli
 for i in $*
  do
