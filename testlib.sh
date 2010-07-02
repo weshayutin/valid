@@ -30,6 +30,10 @@ echo ""
 #echo  "DSKc = $DSKc"
 echo ""
 
+txtred=$(tput setaf 1)    # Red
+txtgrn=$(tput setaf 2)    # Green
+txtrst=$(tput sgr0)       # Text reset
+
 
 function new_test()
 {
@@ -43,7 +47,7 @@ function new_test()
 function rc()
 {
 	echo "COMMAND: $1" >>$LOGFILE
- 	RSLT=$1 2>>${LOGFILE}
+ 	RSLT=`eval $1 2>>${LOGFILE}`
 	rc=$?
 	echo "RETURN CODE: $rc" >>$LOGFILE
 }
@@ -72,12 +76,12 @@ function assert()
 
         if [ "$RSLT" == "$option" ] && [ "$option" != "" ];then
          #echo "IN SECOND TEST" >>$LOGFILE
-         echo "PASS" | $DLOG
+         echo "${txtgrn}PASS${txtrst}" | $DLOG
         elif [ -z $option ] && [ "$rc" == 0 ];then
          #echo "IN THIRD TEST" >>$LOGFILE
-         echo "PASS" | $DLOG
+         echo "${txtgrn}PASS${txtrst}" | $DLOG
         else
-          echo "FAIL" | $DLOG
+         echo "${txtred}FAIL${txtrst}" | $DLOG
           echo ${RSLT} >>${LOGFILE}
           let FAILURES++
         fi
@@ -87,7 +91,7 @@ function assert()
 
 function test_selinux()
 {
- 	echo "SELINUX TESTS"
+ 	echo "## SELINUX TESTS"
 	new_test "## /sbin/getenforce ... " 
 	assert "/usr/sbin/getenforce" "Enforcing"
 	
@@ -108,34 +112,29 @@ function test_selinux()
 
 function test_package_set()
 {
-        file=/tmp/rpmqa
-        echo "## Verify Package set, appropriate packages installed ... "
-        if [ ${UNAMEI} == 'i386' ]; then
-         /bin/rpm -qa --queryformat="%{NAME}\n" > ${file}.tmp 
-        elif [ ${UNAMEI} == 'x86_64' ]; then
-         /bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp  
-        else
-          echo "Do not recognize hardware platform: ${UNAMEI}"
-          exit -1
-        fi
-        cat ${file}.tmp  | sort -f > ${file}
         new_test  "## Verify no missing packages ... "
-        assert "/usr/bin/diff ${DIFF_DIR}/packages.${UNAMEI} ${file}"
+        file=/tmp/rpmqa
+        rc "/bin/rpm -qa --queryformat='%{NAME}\n' > ${file}.tmp"
+        #/bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp  
+        cat ${file}.tmp  | sort -f > ${file}
+        rc "comm -23 ${DIFF_DIR}/packages ${file}"
+        comm -23 ${DIFF_DIR}/packages ${file} > /tmp/package_diff
+	cat /tmp/package_diff >>$LOGFILE
+	assert "cat /tmp/package_diff | wc -l" 0
 }
 
 function test_verify_rpms()
 {
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
-        /bin/rpm -qaV 2>> $LOGFILE | sort -f > ${file}
-        assert "/usr/bin/diff -I /etc/yum.repos.d/redhat-.*-.*.repo ${DIFF_DIR}/rpmqaV.${UNAMEI} /tmp/rpmqaV.txt"
+        /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -f > ${file}
+        assert "cat ${file} | wc -l" "2"
         
         new_test "## Verify Version 1 ... " 
-        rc "/bin/cat /etc/redhat-release > /tmp/redhat-release.txt"
-        assert "/usr/bin/diff ${DIFF_DIR}/redhat-release.txt /tmp/redhat-release.txt"
+        assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
         
         new_test "## Verify Version 2 ... " 
-        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" ${VERSION}
+        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.5" # to-do, pass this in
 }
 
 function test_install_package()
@@ -158,36 +157,33 @@ function test_yum_update()
 
 function test_parted()
 {
-        new_test "# Verify disks ... " 
-	#NEED TO CHANGE
+        new_test "## Verify disks ... " 
+	assert "/sbin/parted --list | grep /dev/sda1" "Disk /dev/sda1: 4096MB" # to-do, pass in the command and answer
 }
 
 function test_disk_label()
 {
-        new_test "### Verify ${DSKa}1 label ... " 
+        new_test "## Verify disk labels ... " 
 	if [ "${PROVIDER}" == 'ec2' ]; then
+	 rc "cat /etc/fstab | grep /dev/sda1"
  	 assert "/sbin/e2label ${DSKa}1" "/"
+	 rc "cat /etc/fstab | grep /dev/sdb"
+ 	 assert "/sbin/e2label ${DSKb}" "/mnt"
 	fi
 	if [ "${PROVIDER}" == 'ibm' ]; then
  	 assert "/sbin/e2label ${DSKa}1" "/boot"
 	fi
 	
-	new_test "### Verify ${DSKa}1 filesystem ... "
+	new_test "### Verify disk filesystem ... "
 	assert "/sbin/dumpe2fs ${DSKa}1"
-
-	new_test "### Verify mnt label ... " 
-	if [ ${UNAMEI} == 'i386' ]; then
-	 assert "/sbin/e2label ${DSKa}2" "/"
-	else
-	 assert "/sbin/e2label ${DSKb}" "/"
-	fi
-
-	new_test "### Verify mnt filesystem ... "
-	if [ ${UNAMEI} == 'i386' ]; then
-	 assert "/sbin/dumpe2fs ${DSKa}2"
-	else
-	 assert "/sbin/dumpe2fs /dev/${DSKb}"
-	fi
+	
+	# to-do fix for ibm
+	#new_test "## Verify mnt filesystem ... "
+	#if [ ${PROVIDER} == 'ec2' ]; then
+	# assert "/sbin/dumpe2fs ${DSKb}"
+	#else
+	# assert "/sbin/dumpe2fs /dev/${DSKb}"
+	#fi
 
 	#new_test "### Verify ${DSKa}3 label ... "
 	#if [ ${UNAMEI} == 'i386' ]; then
@@ -200,9 +196,15 @@ function test_disk_label()
 
 }
 
+function test_bash_history()
+{
+	new_test "## Verify bash_history"
+	assert "cat ~/.bash_history | wc -l " 0 
+}
+
 function test_swap_file()
 {
-	new_test "### Verify swap file ... "
+	new_test "## Verify swap file ... "
 	if [ "${PROVIDER}" == 'ec2' ]; then
 	 assert "/sbin/swapoff ${DSKa}3 && /sbin/swapon ${DSKa}3"
 	fi
@@ -249,13 +251,21 @@ function test_nameserver()
 function test_group()
 {
         new_test "### Verify group file ... " 
-	assert "/usr/bin/diff ${DIFF_DIR}/group.${PROVIDER}.${UNAMEI} /etc/group"
+	assert "cat /etc/group | grep root:x:0" "root:x:0:root"
+	assert "cat /etc/group | grep bin:x:1" "bin:x:1:root,bin,daemon"
+	assert "cat /etc/group | grep daemon:x:2" "daemon:x:2:root,bin,daemon"
+	assert "cat /etc/group | grep nobody:x:99" "nobody:x:99:"
+	rc "useradd test_user"
+	assert "cat /etc/group | grep test_user" "test_user:x:500:"
+	
 }
 
 function test_passwd()
 {
 	new_test "### Verify new passwd file ... "
-	assert "/usr/bin/diff ${DIFF_DIR}/passwd.${PROVIDER}.${UNAMEI} /etc/passwd"
+	assert "cat /etc/passwd | grep root" "root:x:0:0:root:/root:"
+	assert "cat /etc/passwd | grep nobody" "nobody:x:99:99:Nobody:/:/sbin/nologin"
+	assert "cat /etc/passwd | grep sshd" "sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin"
 }
 
 
@@ -291,10 +301,10 @@ function test_yum_plugin()
 	assert "grep ^enabled /etc/yum/pluginconf.d/rhnplugin.conf | grep -v '^#' | cut -d\= -f2 | awk '{print $1}' | sort -f | uniq"
 }
 
-function test_gpg_checking()
+function test_gpg_keys()
 {
         new_test "## Verify GPG checking ... " 
-	assert "grep '^gpgcheck=1' /etc/yum.repos.d/redhat-${AZ}.repo | cut -d\= -f2 | sort -f | uniq"
+	assert "grep '^gpgcheck=1' /etc/yum.repos.d/redhat-*.repo | cut -d\= -f2 | sort -f | uniq" 1
 }
 
 function test_IPv6()
