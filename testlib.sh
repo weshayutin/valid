@@ -246,14 +246,13 @@ function test_nameserver()
 #       else
 #         echo "FAIL" | $DLOG
 #         echo "${SYSDATE} != ${DATE}"
-#         let FAILURES++
 #       fi
 #}
 
 
 function test_group()
 {
-        new_test "### Verify group file ... " 
+        new_test "## Verify group file ... " 
 	assert "cat /etc/group | grep root:x:0" "root:x:0:root"
 	assert "cat /etc/group | grep bin:x:1" "bin:x:1:root,bin,daemon"
 	assert "cat /etc/group | grep daemon:x:2" "daemon:x:2:root,bin,daemon"
@@ -265,8 +264,8 @@ function test_group()
 
 function test_passwd()
 {
-	new_test "### Verify new passwd file ... "
-	assert "cat /etc/passwd | grep root" "root:x:0:0:root:/root:"
+	new_test "## Verify new passwd file ... "
+	assert "cat /etc/passwd | grep root:x:0" "root:x:0:0:root:/root:/bin/bash"
 	assert "cat /etc/passwd | grep nobody:x:99" "nobody:x:99:99:Nobody:/:/sbin/nologin"
 	assert "cat /etc/passwd | grep sshd" "sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin"
 }
@@ -274,19 +273,27 @@ function test_passwd()
 
 function test_modprobe()
 {
-        new_test "### Verify new modprobe.conf file ... "
+        new_test "## Verify new modprobe.conf file ... "
 	assert "cat /etc/modprobe.conf" "alias eth0 xennet"
+}
+
+function test_inittab()
+{
+	new_test "## Verify inittab ... " 
+	assert "cat /etc/inittab | grep id:" "id:3:initdefault:"
+	assert "cat /etc/inittab | grep si:" "si::sysinit:/etc/rc.d/rc.sysinit"
+
 }
 
 function test_mtab()
 {
-        new_test "### Verify new mtab file ... "
+        new_test "## Verify new mtab file ... "
 	assert "cat /etc/mtab | grep ${DSKa}1" "/dev/sda1 / ext3 rw 0 0"
 }
 
 function test_shells()
 {
-        new_test "### Verify new shells file ... " 
+        new_test "## Verify new shells file ... " 
 	assert "cat /etc/shells | grep bash" "/bin/bash"
 	assert "cat /etc/shells | grep ksh" "/bin/ksh"
 	assert "cat /etc/shells | grep nologin" "/sbin/nologin"
@@ -344,20 +351,20 @@ function test_iptables()
 
 function test_chkconfig()
 {
-        new_test "## Verify all of chkconfig ... "
-	rc "/sbin/chkconfig --list > /tmp/chkconfig.txt"
-	assert "/usr/bin/diff ${DIFF_DIR}/chkconfig.${PROVIDER}.${UNAMEI} /tmp/chkconfig.txt"
+        new_test "## Verify  chkconfig ... "
+	assert "chkconfig --list | grep crond | cut -f 5" "3:on"
+	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
+	assert "chkconfig --list | grep yum-updatesd | cut -f 5" "3:on"
 }
 
 
 function test_syslog()
 {
         new_test "## Verify syslog is on ... " 
-	assert "/sbin/chkconfig --list syslog | grep 3:on" 
-	assert "/sbin/chkconfig --list syslog | grep 5:on" 
+	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
 
 	new_test "## Verify syslog config ... "
-	assert "/usr/bin/diff ${DIFF_DIR}/syslog.conf /etc/syslog.conf"
+	#assert "/usr/bin/diff ${DIFF_DIR}/rsyslog /etc/syslog.conf" # to-do fix
 }
 
 function test_auditd()
