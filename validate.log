@@ -5,7 +5,7 @@ COMMAND:  /usr/sbin/getenforce
 RESULT: Enforcing 
 EXPECTED RESULT: Enforcing 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify SELINUX enforcing ... 
 ######################################################################################
@@ -13,7 +13,7 @@ COMMAND:  grep ^SELINUX= /etc/sysconfig/selinux | cut -d\= -f2
 RESULT: enforcing 
 EXPECTED RESULT: enforcing 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify SELINUXTYPE targeted ... 
 ######################################################################################
@@ -21,7 +21,7 @@ COMMAND:  grep ^SELINUXTYPE= /etc/sysconfig/selinux | cut -d\= -f2
 RESULT: targeted 
 EXPECTED RESULT: targeted 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Flip Selinux Permissive ... 
 ######################################################################################
@@ -29,7 +29,7 @@ COMMAND:  /usr/sbin/setenforce Permissive && /usr/sbin/getenforce
 RESULT: Permissive 
 EXPECTED RESULT: Permissive 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Flip Selinux Enforcing ... 
 ######################################################################################
@@ -37,7 +37,7 @@ COMMAND:  /usr/sbin/setenforce Enforcing && /usr/sbin/getenforce
 RESULT: Enforcing 
 EXPECTED RESULT: Enforcing 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify no missing packages ... 
 ######################################################################################
@@ -50,7 +50,7 @@ COMMAND:  cat /tmp/package_diff | wc -l
 RESULT: 1 
 EXPECTED RESULT: 0 
 RETURN CODE: 0
-[31mFAIL(B[m
+FAIL
 1
 ######################################################################################
 # NEW TEST: ## Verify GPG checking ... 
@@ -59,7 +59,7 @@ COMMAND:  grep '^gpgcheck=1' /etc/yum.repos.d/redhat-*.repo | cut -d\= -f2 | sor
 RESULT: 1 
 EXPECTED RESULT: 1 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify RPMs ... 
 ######################################################################################
@@ -67,7 +67,7 @@ COMMAND:  cat /tmp/rpmqaV.txt | wc -l
 RESULT: 2 
 EXPECTED RESULT: 2 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify Version 1 ... 
 ######################################################################################
@@ -75,7 +75,7 @@ COMMAND:  /bin/cat /etc/redhat-release
 RESULT: Red Hat Enterprise Linux Server release 5.5 (Tikanga) 
 EXPECTED RESULT: Red Hat Enterprise Linux Server release 5.5 (Tikanga) 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify Version 2 ... 
 ######################################################################################
@@ -83,7 +83,7 @@ COMMAND:  /bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,
 RESULT: 5.5 
 EXPECTED RESULT: 5.5 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## install zsh ... 
 ######################################################################################
@@ -93,7 +93,7 @@ COMMAND:  /bin/rpm -q --queryformat '%{NAME}\n' zsh
 RESULT: zsh 
 EXPECTED RESULT: zsh 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify package removal ... 
 ######################################################################################
@@ -103,7 +103,7 @@ COMMAND:  /bin/rpm -q zsh
 RESULT: package zsh is not installed 
 EXPECTED RESULT: package zsh is not installed 
 RETURN CODE: 1
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify disks ... 
 ######################################################################################
@@ -111,7 +111,7 @@ COMMAND:  /sbin/parted --list | grep /dev/sda1
 RESULT: Disk /dev/sda1: 4096MB 
 EXPECTED RESULT: Disk /dev/sda1: 4096MB 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify yum update ... 
 ######################################################################################
@@ -124,7 +124,7 @@ Setting up Update Process
 No Packages marked for Update 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify disk labels ... 
 ######################################################################################
@@ -134,7 +134,7 @@ COMMAND:  /sbin/e2label /dev/sda1
 RESULT: / 
 EXPECTED RESULT: / 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 COMMAND: cat /etc/fstab | grep /dev/sdb
 RETURN CODE: 0
 COMMAND:  /sbin/e2label /dev/sda
@@ -143,7 +143,7 @@ Couldn't find valid filesystem superblock.
 RESULT:  
 EXPECTED RESULT: /mnt 
 RETURN CODE: 1
-[31mFAIL(B[m
+FAIL
 
 ######################################################################################
 # NEW TEST: ### Verify disk filesystem ... 
@@ -185,7 +185,7 @@ Reserved blocks gid:      0 (group root)
 First inode:              11
 Inode size:		  128
 Journal inode:            8
-First orphan inode:       371803
+First orphan inode:       32487
 Default directory hash:   tea
 Directory Hash Seed:      f6221ade-7f16-48f4-8f6d-99571dac5ec3
 Journal backup:           inode blocks
@@ -211,9 +211,9 @@ Group 1: (Blocks 32768-65535)
 Group 2: (Blocks 65536-98303)
   Block bitmap at 65536 (+0), Inode bitmap at 65537 (+1)
   Inode table at 65538-66042 (+2)
-  31835 free blocks, 15987 free inodes, 31 directories
-  Free blocks: 66334-69631, 69634-71679, 71681-71683, 71686-71687, 71689-75775, 75797-75800, 75804-77823, 77825-77840, 77846-79871, 79879, 79881-79882, 79887-81919, 81926-86015, 86023, 86026, 86028-88063, 88067-88071, 88074-90111, 90114, 90119, 90122-92159, 92167, 92175, 92183, 92191, 92199, 92203-92205, 92207, 92212-92217, 92220-92221, 92223, 92230-92235, 92241-96263, 96265-98303
-  Free inodes: 32466, 32474, 32496-48480
+  31845 free blocks, 15997 free inodes, 37 directories
+  Free blocks: 66334-69631, 69635-71679, 71681-71683, 71686-71687, 71689-71695, 71698-75775, 75796-75800, 75804-77823, 77825-79871, 79879, 79883, 79886, 79895-81919, 81922, 81926-83968, 83975-86015, 86023, 86026, 86028-88063, 88068-90111, 90114, 90119, 90122-92159, 92167-92175, 92177-92181, 92183, 92191, 92193-92200, 92203-92217, 92220-92221, 92223, 92230-92235, 92241-94215, 94219-96263, 96267-98303
+  Free inodes: 32423, 32461-32465, 32471-32472, 32474, 32485, 32494-48480
 Group 3: (Blocks 98304-131071)
   Backup superblock at 98304, Group descriptors at 98305-98305
   Reserved GDT blocks at 98306-98549
@@ -247,8 +247,8 @@ Group 7: (Blocks 229376-262143)
   Reserved GDT blocks at 229378-229621
   Block bitmap at 229622 (+246), Inode bitmap at 229623 (+247)
   Inode table at 229624-230128 (+248)
-  2 free blocks, 6040 free inodes, 783 directories
-  Free blocks: 253786, 253952
+  1 free blocks, 6040 free inodes, 783 directories
+  Free blocks: 253953
   Free inodes: 123240-123248, 123250-129280
 Group 8: (Blocks 262144-294911)
   Block bitmap at 262144 (+0), Inode bitmap at 262145 (+1)
@@ -261,8 +261,8 @@ Group 9: (Blocks 294912-327679)
   Reserved GDT blocks at 294914-295157
   Block bitmap at 295158 (+246), Inode bitmap at 295159 (+247)
   Inode table at 295160-295664 (+248)
-  2347 free blocks, 10186 free inodes, 88 directories
-  Free blocks: 318417-318427, 318433-319487, 319515-319788, 320537-321024, 323219-323286, 323505-323741, 325926-325937, 327478-327679
+  2348 free blocks, 10186 free inodes, 88 directories
+  Free blocks: 318418-318427, 318431-319487, 319515-319788, 320537-321024, 323219-323286, 323505-323741, 325926-325937, 327478-327679
   Free inodes: 150732, 150819, 150833, 150841, 150854, 150866, 150873, 150881-150882, 150884, 150886, 150888, 150890, 150893, 150897-150898, 150921, 150923, 150935, 150937, 150939, 150941, 150999, 151016, 151018, 151020, 151022, 151035-151036, 151047, 151163, 151165, 151169, 151179, 151185, 151187, 151193, 151200, 151202, 151206, 151215, 151222, 151224, 151226, 151233, 151238, 151242, 151246, 151336, 151339, 151345, 151356, 151366, 151383, 151385, 151387, 151389, 151391, 151450, 151472, 151474, 151476-161600
 Group 10: (Blocks 327680-360447)
   Block bitmap at 327680 (+0), Inode bitmap at 327681 (+1)
@@ -280,19 +280,19 @@ Group 12: (Blocks 393216-425983)
   Block bitmap at 393216 (+0), Inode bitmap at 393217 (+1)
   Inode table at 393218-393722 (+2)
   1024 free blocks, 10472 free inodes, 425 directories
-  Free blocks: 393834, 424882-424883, 424885-424886, 424935, 424937, 424942-424947, 424949-424955, 424957-424963, 424965-424972, 424991-424996, 425001-425983
+  Free blocks: 393834, 424882-424883, 424885-424886, 424935-424936, 424942-424947, 424949-424955, 424957-424963, 424965-424972, 424991-424996, 425001-425983
   Free inodes: 199606, 199608, 199610-199612, 199614-210080
 Group 13: (Blocks 425984-458751)
   Block bitmap at 425984 (+0), Inode bitmap at 425985 (+1)
   Inode table at 425986-426490 (+2)
-  2 free blocks, 11933 free inodes, 1141 directories
-  Free blocks: 428557-428558
-  Free inodes: 214307, 214309-226240
+  1 free blocks, 11933 free inodes, 1141 directories
+  Free blocks: 428558
+  Free inodes: 214308-226240
 Group 14: (Blocks 458752-491519)
   Block bitmap at 458752 (+0), Inode bitmap at 458753 (+1)
   Inode table at 458754-459258 (+2)
-  11759 free blocks, 9473 free inodes, 1034 directories
-  Free blocks: 470773-470774, 470778-470787, 470790-470833, 470835-470850, 478316-478318, 479758-483327, 483332-487423, 487431, 487499-491519
+  11760 free blocks, 9473 free inodes, 1034 directories
+  Free blocks: 470773-470774, 470778-470789, 470791-470833, 470835-470850, 478316-478318, 479758-483327, 483332-487423, 487431, 487499-491519
   Free inodes: 232582, 232929-242400
 Group 15: (Blocks 491520-524287)
   Block bitmap at 491520 (+0), Inode bitmap at 491521 (+1)
@@ -334,13 +334,13 @@ Group 21: (Blocks 688128-720895)
   Block bitmap at 688128 (+0), Inode bitmap at 688129 (+1)
   Inode table at 688130-688634 (+2)
   29622 free blocks, 15517 free inodes, 118 directories
-  Free blocks: 690756-696319, 696321-696327, 696329-698367, 698373-698375, 698383, 698391, 698399-698400, 698415-698418, 698423, 698686-702463, 702465-704605, 704609-706559, 706561-708607, 708610-708615, 708702-710655, 710773-720895
+  Free blocks: 690756-696319, 696321-696327, 696329-698367, 698374-698375, 698383, 698391, 698399-698400, 698415-698418, 698423, 698686-702463, 702465-704605, 704609-708607, 708610-708615, 708702-710655, 710773-720895
   Free inodes: 340004-355520
 Group 22: (Blocks 720896-753663)
   Block bitmap at 720896 (+0), Inode bitmap at 720897 (+1)
   Inode table at 720898-721402 (+2)
   31241 free blocks, 16096 free inodes, 0 directories
-  Free blocks: 722403-729087, 729108-753663
+  Free blocks: 722403-737279, 737300-753663
   Free inodes: 355585-371680
 Group 23: (Blocks 753664-786431)
   Block bitmap at 753664 (+0), Inode bitmap at 753665 (+1)
@@ -385,8 +385,8 @@ Group 28: (Blocks 917504-950271)
 Group 29: (Blocks 950272-983039)
   Block bitmap at 950272 (+0), Inode bitmap at 950273 (+1)
   Inode table at 950274-950778 (+2)
-  16802 free blocks, 15174 free inodes, 184 directories
-  Free blocks: 950805-950807, 950814-950818, 950854, 950859, 950864-950960, 950962-950968, 950970-950976, 950994-951000, 951008, 951501-951503, 951696-951699, 952349, 955708, 955710-955712, 958392-958394, 958404-958463, 958466-958471, 958934-959095, 959910-960070, 960118-960122, 960176-960224, 960237-960402, 960491-960505, 960590-960676, 961064-962559, 962563-962567, 962877-962878, 962880, 962882-964607, 964609-964610, 964619-966655, 966660-966663, 966669-968703, 968710-970751, 970759, 970762-971240, 971242, 971244, 971246-971247, 971250-972799, 972846-972914, 972916-973519, 974849-974855, 976283-976486, 976491, 976493-976895, 976905, 976908-978943, 980993, 981241-981276, 981408-981448, 981451-981454, 981456-981469, 981493-981604, 981639, 981642-981647, 981650-981655, 981674-981679, 981683-981687, 981690-981695, 981697-981703, 981707-981711, 981714-981719, 981721-981727, 981729-981735, 981738-981743, 981745-981746, 981749-981750, 981756-981762, 981764-981783, 981786-981797, 981799-981875, 981877-981878, 981888-981890, 981954-981959, 981962-981967, 981971-981975, 981977-981983, 981985-981991, 981993-981999, 982001-982007, 982012-982015, 982017-982023, 982025-982054, 982056-982058, 982061-982182, 982212-982215, 982217-982223, 982230-982231, 982271, 982273-982279, 982282-982287, 982291-982295, 982297-982303, 982305-982326, 982330-982333, 982337-982368, 982377-982381, 982385-982454, 982456-982461, 982465-982496, 982520-982630, 982632-982758, 982858-982863, 982865-982871, 982873-982879, 982881-982887, 982889-983039
+  16798 free blocks, 15174 free inodes, 184 directories
+  Free blocks: 950805-950807, 950814-950818, 950854, 950859, 950864-950960, 950962-950968, 950970-950976, 950994-951000, 951008, 951501-951503, 951696-951699, 952349, 955708, 955710-955712, 958392-958394, 958404-958463, 958466-958471, 958934-959095, 959910-960070, 960118-960122, 960176-960224, 960240-960402, 960491-960505, 960590-960676, 961064-962559, 962563-962567, 962877-962878, 962880, 962882-964607, 964609-964610, 964619-966655, 966660-966663, 966669-968703, 968710-970751, 970759, 970762-971240, 971242, 971244, 971246-971247, 971250-972799, 972847-972914, 972916-973519, 974849-974855, 976283-976486, 976491, 976493-976895, 976905, 976908-978943, 980993, 981241-981276, 981408-981448, 981451-981454, 981456-981469, 981493-981604, 981639, 981642-981647, 981650-981655, 981674-981679, 981683-981687, 981690-981695, 981697-981703, 981707-981711, 981714-981719, 981721-981727, 981729-981735, 981738-981743, 981745-981746, 981749-981750, 981756-981762, 981764-981783, 981786-981797, 981799-981875, 981877-981878, 981888-981890, 981954-981959, 981962-981967, 981971-981975, 981977-981983, 981985-981991, 981993-981999, 982001-982007, 982012-982015, 982017-982023, 982025-982054, 982056-982058, 982061-982182, 982212-982215, 982217-982223, 982230-982231, 982271, 982273-982279, 982282-982287, 982291-982295, 982297-982303, 982305-982326, 982330-982333, 982337-982368, 982377-982381, 982385-982454, 982456-982461, 982465-982496, 982520-982630, 982632-982758, 982858-982863, 982865-982871, 982873-982879, 982881-982887, 982889-983039
   Free inodes: 469619, 469623, 469625-469626, 469631-484800
 Group 30: (Blocks 983040-1000037)
   Block bitmap at 983040 (+0), Inode bitmap at 983041 (+1)
@@ -396,7 +396,7 @@ Group 30: (Blocks 983040-1000037)
   Free inodes: 484887-500960 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify swap file ... 
 ######################################################################################
@@ -404,7 +404,7 @@ COMMAND:  /sbin/swapoff /dev/sda3 && /sbin/swapon /dev/sda3
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify bash_history
 ######################################################################################
@@ -412,7 +412,7 @@ COMMAND:  cat ~/.bash_history | wc -l
 RESULT: 219 
 EXPECTED RESULT: 0 
 RETURN CODE: 0
-[31mFAIL(B[m
+FAIL
 219
 ######################################################################################
 # NEW TEST: ## Verify no systemid file ... 
@@ -421,7 +421,7 @@ COMMAND:  echo true
 RESULT: true 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify rh-cloud-firstboot is off ... 
 ######################################################################################
@@ -429,7 +429,7 @@ COMMAND:  chkconfig --list | grep rh-cloud | grep -v on
 RESULT: rh-cloud-firstboot	0:off	1:off	2:off	3:off	4:off	5:off	6:off 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify nameserver ... 
 ######################################################################################
@@ -437,7 +437,7 @@ COMMAND:  /usr/bin/dig clock.redhat.com 2>> /home/whayutin/valid/validate.log | 
 RESULT: 1 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ### Verify group file ... 
 ######################################################################################
@@ -445,22 +445,22 @@ COMMAND:  cat /etc/group | grep root:x:0
 RESULT: root:x:0:root 
 EXPECTED RESULT: root:x:0:root 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 COMMAND:  cat /etc/group | grep bin:x:1
 RESULT: bin:x:1:root,bin,daemon 
 EXPECTED RESULT: bin:x:1:root,bin,daemon 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 COMMAND:  cat /etc/group | grep daemon:x:2
 RESULT: daemon:x:2:root,bin,daemon 
 EXPECTED RESULT: daemon:x:2:root,bin,daemon 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 COMMAND:  cat /etc/group | grep nobody:x:99
 RESULT: nobody:x:99: 
 EXPECTED RESULT: nobody:x:99: 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 COMMAND: useradd test_user
 useradd: user test_user exists
 RETURN CODE: 9
@@ -468,7 +468,7 @@ COMMAND:  cat /etc/group | grep test_user
 RESULT: test_user:x:501: 
 EXPECTED RESULT: test_user:x:500: 
 RETURN CODE: 0
-[31mFAIL(B[m
+FAIL
 test_user:x:501:
 ######################################################################################
 # NEW TEST: ### Verify new passwd file ... 
@@ -478,48 +478,59 @@ RESULT: root:x:0:0:root:/root:/bin/bash
 operator:x:11:0:operator:/root:/sbin/nologin 
 EXPECTED RESULT: root:x:0:0:root:/root: 
 RETURN CODE: 0
-[31mFAIL(B[m
+FAIL
 root:x:0:0:root:/root:/bin/bash operator:x:11:0:operator:/root:/sbin/nologin
-COMMAND:  cat /etc/passwd | grep nobody
-RESULT: nobody:x:99:99:Nobody:/:/sbin/nologin
-nfsnobody:x:65534:65534:Anonymous NFS User:/var/lib/nfs:/sbin/nologin 
+COMMAND:  cat /etc/passwd | grep nobody:x:99
+RESULT: nobody:x:99:99:Nobody:/:/sbin/nologin 
 EXPECTED RESULT: nobody:x:99:99:Nobody:/:/sbin/nologin 
 RETURN CODE: 0
-[31mFAIL(B[m
-nobody:x:99:99:Nobody:/:/sbin/nologin nfsnobody:x:65534:65534:Anonymous NFS User:/var/lib/nfs:/sbin/nologin
+PASS
 COMMAND:  cat /etc/passwd | grep sshd
 RESULT: sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin 
 EXPECTED RESULT: sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ### Verify new modprobe.conf file ... 
 ######################################################################################
-COMMAND:  /usr/bin/diff /home/whayutin/valid/modprobe.ec2.txt /etc/modprobe.conf
-RESULT:  
-EXPECTED RESULT:  
+COMMAND:  cat /etc/modprobe.conf
+RESULT: alias eth0 xennet 
+EXPECTED RESULT: alias eth0 xennet 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ### Verify new mtab file ... 
 ######################################################################################
-COMMAND:  /usr/bin/diff /home/whayutin/valid/mtab.ec2.i386 /etc/mtab
-RESULT: 5d4
-< /dev/sda2 /mnt ext3 rw,context="system_u:object_r:usr_t:s0" 0 0
-8a8
-> /dev/sda2 /wes ext3 rw 0 0 
-EXPECTED RESULT:  
-RETURN CODE: 1
-[31mFAIL(B[m
-5d4 < /dev/sda2 /mnt ext3 rw,context="system_u:object_r:usr_t:s0" 0 0 8a8 > /dev/sda2 /wes ext3 rw 0 0
+COMMAND:  cat /etc/mtab | grep /dev/sda1
+RESULT: /dev/sda1 / ext3 rw 0 0 
+EXPECTED RESULT: /dev/sda1 / ext3 rw 0 0 
+RETURN CODE: 0
+PASS
 ######################################################################################
 # NEW TEST: ### Verify new shells file ... 
 ######################################################################################
-COMMAND:  /usr/bin/diff /home/whayutin/valid/shells.txt /etc/shells
-RESULT:  
-EXPECTED RESULT:  
+COMMAND:  cat /etc/shells | grep bash
+RESULT: /bin/bash 
+EXPECTED RESULT: /bin/bash 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
+COMMAND:  cat /etc/shells | grep ksh
+RESULT: /bin/ksh 
+EXPECTED RESULT: /bin/ksh 
+RETURN CODE: 0
+PASS
+COMMAND:  cat /etc/shells | grep nologin
+RESULT: /sbin/nologin 
+EXPECTED RESULT: /bin/nologin 
+RETURN CODE: 0
+FAIL
+/sbin/nologin
+COMMAND:  cat /etc/shells | grep wes
+RESULT:  
+EXPECTED RESULT: /bin/nologin 
+RETURN CODE: 1
+FAIL
+
 ######################################################################################
 # NEW TEST: ### test repo files
 ######################################################################################
@@ -527,18 +538,18 @@ COMMAND:  ls /etc/yum.repos.d/ | wc -l
 RESULT: 7 
 EXPECTED RESULT: 5 
 RETURN CODE: 0
-[31mFAIL(B[m
+FAIL
 7
 COMMAND:  ls /etc/yum.repos.d/redhat* | wc -l
 RESULT: 4 
 EXPECTED RESULT: 4 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 COMMAND:  ls /etc/yum.repos.d/rhel* | wc -l
 RESULT: 1 
 EXPECTED RESULT: 1 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify disabled yum plugin ... 
 ######################################################################################
@@ -546,7 +557,7 @@ COMMAND:  grep ^enabled /etc/yum/pluginconf.d/rhnplugin.conf | grep -v '^#' | cu
 RESULT:  0 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify IPv6 disabled ... 
 ######################################################################################
@@ -554,7 +565,7 @@ COMMAND:  grep ^NETWORKING_IPV6= /etc/sysconfig/network | cut -d\= -f2
 RESULT: no 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify networking ... 
 ######################################################################################
@@ -562,7 +573,7 @@ COMMAND:  grep ^NETWORKING= /etc/sysconfig/network | cut -d\= -f2
 RESULT: yes 
 EXPECTED RESULT: yes 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify device ... 
 ######################################################################################
@@ -570,7 +581,7 @@ COMMAND:  grep ^DEVICE= /etc/sysconfig/network-scripts/ifcfg-eth0 | cut -d\= -f2
 RESULT: eth0 
 EXPECTED RESULT: eth0 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify iptables ... 
 ######################################################################################
@@ -580,25 +591,19 @@ COMMAND:  /usr/bin/diff /home/whayutin/valid/iptables.txt /tmp/iptables.txt
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify all of chkconfig ... 
 ######################################################################################
 COMMAND: /sbin/chkconfig --list > /tmp/chkconfig.txt
 RETURN CODE: 0
 COMMAND:  /usr/bin/diff /home/whayutin/valid/chkconfig.ec2.i386 /tmp/chkconfig.txt
-RESULT: 13a14
-> exim           	0:off	1:off	2:on	3:on	4:on	5:on	6:off
-40d40
-< postfix        	0:off	1:off	2:on	3:on	4:on	5:on	6:off
-52d51
-< saslauthd      	0:off	1:off	2:off	3:off	4:off	5:off	6:off
-57d55
-< syslog         	0:off	1:off	2:on	3:on	4:on	5:on	6:off 
+/usr/bin/diff: /home/whayutin/valid/chkconfig.ec2.i386: No such file or directory
+RESULT:  
 EXPECTED RESULT:  
-RETURN CODE: 1
-[31mFAIL(B[m
-13a14 > exim 0:off 1:off 2:on 3:on 4:on 5:on 6:off 40d40 < postfix 0:off 1:off 2:on 3:on 4:on 5:on 6:off 52d51 < saslauthd 0:off 1:off 2:off 3:off 4:off 5:off 6:off 57d55 < syslog 0:off 1:off 2:on 3:on 4:on 5:on 6:off
+RETURN CODE: 2
+FAIL
+
 ######################################################################################
 # NEW TEST: ## Verify syslog is on ... 
 ######################################################################################
@@ -607,14 +612,14 @@ error reading information on service syslog: No such file or directory
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 1
-[31mFAIL(B[m
+FAIL
 
 COMMAND:  /sbin/chkconfig --list syslog | grep 5:on
 error reading information on service syslog: No such file or directory
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 1
-[31mFAIL(B[m
+FAIL
 
 ######################################################################################
 # NEW TEST: ## Verify syslog config ... 
@@ -624,7 +629,7 @@ COMMAND:  /usr/bin/diff /home/whayutin/valid/syslog.conf /etc/syslog.conf
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 2
-[31mFAIL(B[m
+FAIL
 
 ######################################################################################
 # NEW TEST: ## Verify auditd is on ... 
@@ -633,12 +638,12 @@ COMMAND:  /sbin/chkconfig --list auditd | grep 3:on
 RESULT: auditd         	0:off	1:off	2:on	3:on	4:on	5:on	6:off 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 COMMAND:  /sbin/chkconfig --list auditd | grep 5:on
 RESULT: auditd         	0:off	1:off	2:on	3:on	4:on	5:on	6:off 
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify audit.rules ... 
 ######################################################################################
@@ -646,7 +651,7 @@ COMMAND:  /usr/bin/diff /home/whayutin/valid/audit.rules /etc/audit/audit.rules
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify auditd.conf ... 
 ######################################################################################
@@ -654,7 +659,7 @@ COMMAND:  /usr/bin/diff /home/whayutin/valid/auditd.conf /etc/audit/auditd.conf
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify auditd sysconfig ... 
 ######################################################################################
@@ -662,7 +667,7 @@ COMMAND:  /usr/bin/diff /home/whayutin/valid/auditd /etc/sysconfig/auditd
 RESULT:  
 EXPECTED RESULT:  
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify kernel name ... 
 ######################################################################################
@@ -670,7 +675,7 @@ COMMAND:  /bin/uname -s
 RESULT: Linux 
 EXPECTED RESULT: Linux 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify kernel release ... 
 ######################################################################################
@@ -678,7 +683,7 @@ COMMAND:  /bin/uname -r | sed -e 's/xen$//g'
 RESULT: 2.6.18-194.8.1.el5 
 EXPECTED RESULT: 2.6.18-194.8.1.el5 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS
 ######################################################################################
 # NEW TEST: ## Verify operating system ... 
 ######################################################################################
@@ -686,4 +691,4 @@ COMMAND:  /bin/uname -o
 RESULT: GNU/Linux 
 EXPECTED RESULT: GNU/Linux 
 RETURN CODE: 0
-[32mPASS(B[m
+PASS

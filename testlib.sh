@@ -76,12 +76,15 @@ function assert()
 
         if [ "$RSLT" == "$option" ] && [ "$option" != "" ];then
          #echo "IN SECOND TEST" >>$LOGFILE
-         echo "${txtgrn}PASS${txtrst}" | $DLOG
+         echo "${txtgrn}PASS${txtrst}" 
+         echo "PASS" >> $LOGFILE
         elif [ -z $option ] && [ "$rc" == 0 ];then
          #echo "IN THIRD TEST" >>$LOGFILE
-         echo "${txtgrn}PASS${txtrst}" | $DLOG
+         echo "${txtgrn}PASS${txtrst}" 
+         echo "PASS" >> $LOGFILE
         else
-         echo "${txtred}FAIL${txtrst}" | $DLOG
+         echo "${txtred}FAIL${txtrst}" 
+         echo "FAIL" >>  $LOGFILE
           echo ${RSLT} >>${LOGFILE}
           let FAILURES++
         fi
@@ -264,7 +267,7 @@ function test_passwd()
 {
 	new_test "### Verify new passwd file ... "
 	assert "cat /etc/passwd | grep root" "root:x:0:0:root:/root:"
-	assert "cat /etc/passwd | grep nobody" "nobody:x:99:99:Nobody:/:/sbin/nologin"
+	assert "cat /etc/passwd | grep nobody:x:99" "nobody:x:99:99:Nobody:/:/sbin/nologin"
 	assert "cat /etc/passwd | grep sshd" "sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin"
 }
 
@@ -272,19 +275,21 @@ function test_passwd()
 function test_modprobe()
 {
         new_test "### Verify new modprobe.conf file ... "
-	assert "/usr/bin/diff ${DIFF_DIR}/modprobe.${PROVIDER}.txt /etc/modprobe.conf"
+	assert "cat /etc/modprobe.conf" "alias eth0 xennet"
 }
 
 function test_mtab()
 {
         new_test "### Verify new mtab file ... "
-	assert "/usr/bin/diff ${DIFF_DIR}/mtab.${PROVIDER}.${UNAMEI} /etc/mtab"
+	assert "cat /etc/mtab | grep ${DSKa}1" "/dev/sda1 / ext3 rw 0 0"
 }
 
 function test_shells()
 {
         new_test "### Verify new shells file ... " 
-	assert "/usr/bin/diff ${DIFF_DIR}/shells.txt /etc/shells"
+	assert "cat /etc/shells | grep bash" "/bin/bash"
+	assert "cat /etc/shells | grep ksh" "/bin/ksh"
+	assert "cat /etc/shells | grep nologin" "/sbin/nologin"
 }
 
 function test_repos()
@@ -320,8 +325,13 @@ function test_networking()
 
 	new_test "## Verify device ... "
 	assert "grep ^DEVICE= /etc/sysconfig/network-scripts/ifcfg-eth0 | cut -d\= -f2" eth0
+}
 
-
+function test_sshd()
+{
+	new_test "## Verify sshd ..."
+	assert "chkconfig --list | grep sshd" "sshd           	0:off	1:off	2:on	3:on	4:on	5:on	6:off"
+	assert "/etc/init.d/sshd status | grep running | wc -l"  1
 }
 
 

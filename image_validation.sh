@@ -35,10 +35,10 @@ source $PWD/testlib.sh
 test_selinux
 test_package_set
 test_gpg_keys
-test_verify_rpms
-test_install_package
+#test_verify_rpms
+#test_install_package
 test_parted
-test_yum_update
+#test_yum_update
 test_disk_label
 test_swap_file
 test_bash_history
@@ -54,7 +54,6 @@ test_mtab
 test_shells
 test_repos
 test_yum_plugin
-test_gpg_checking
 #test_hostname #disabled
 test_IPv6
 test_networking
