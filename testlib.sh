@@ -470,11 +470,17 @@ function show_failures()
         echo "## Summary ##" | $DLOG
 	echo "FAILURES = ${FAILURES}" | $DLOG
 	echo "LOG FILE = ${LOGFILE}" | $DLOG
-        echo "## Summary ##" $DLOG
+        echo "## Summary ##" |  $DLOG
 	echo "" | $DLOG
 }
 
 function exit()
 {
+	echo "" 
+        echo "## Summary ##" 
+	echo "FAILURES = ${FAILURES}" 
+	echo "LOG FILE = ${LOGFILE}" 
+        echo "## Summary ##" 
+	echo "" 
 	exit ${FAILURES}
 }
