@@ -1,4 +1,18 @@
 #!/bin/bash
+# Copyright (c) 2010 Red Hat, Inc.
+#
+# This software is licensed to you under the GNU General Public License,
+# version 2 (GPLv2). There is NO WARRANTY for this software, express or
+# implied, including the implied warranties of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
+# along with this software; if not, see
+# http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
+#
+# Red Hat trademarks are not licensed under GPLv2. No permission is
+# granted to use or replicate Red Hat trademarks that are incorporated
+# in this software or its documentation.
+#
+# written by whayutin@redhat.com
 
 FAILURES=0
 
@@ -31,14 +45,14 @@ for i in $*
 done
 
 source $PWD/testlib.sh
-
+echo "## START TESTS ... "
 test_selinux
 test_package_set
 test_gpg_keys
-#test_verify_rpms
-#test_install_package
+test_verify_rpms
+test_install_package
 test_parted
-#test_yum_update
+test_yum_update
 test_disk_label
 test_swap_file
 test_bash_history

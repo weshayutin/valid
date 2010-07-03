@@ -1,4 +1,18 @@
 #!/bin/bash
+# Copyright (c) 2010 Red Hat, Inc.
+#
+# This software is licensed to you under the GNU General Public License,
+# version 2 (GPLv2). There is NO WARRANTY for this software, express or
+# implied, including the implied warranties of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
+# along with this software; if not, see
+# http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
+#
+# Red Hat trademarks are not licensed under GPLv2. No permission is
+# granted to use or replicate Red Hat trademarks that are incorporated
+# in this software or its documentation.
+#
+# written by whayutin@redhat.com
 
 FAILURES=0
 LOGFILE=$PWD/validate.log
@@ -131,7 +145,10 @@ function test_verify_rpms()
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -f > ${file}
+	cat $file >> $LOGFILE
+	cat ${DIFF_DIR}/rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
+	
         
         new_test "## Verify Version 1 ... " 
         assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
@@ -161,7 +178,9 @@ function test_yum_update()
 function test_parted()
 {
         new_test "## Verify disks ... " 
-	assert "/sbin/parted --list | grep /dev/sda1" "Disk /dev/sda1: 4096MB" # to-do, pass in the command and answer
+	assert "/sbin/parted --list | grep ${DSKa}1" "Disk /dev/sda1: 4096MB" # to-do, pass in the command and answer
+	assert "/sbin/parted --list | grep ${DSKa}2" "Disk /dev/sda2: 160GB" # to-do, pass in the command and answer
+	assert "/sbin/parted --list | grep ${DSKa}3" "Disk /dev/sda3: 940MB" # to-do, pass in the command and answer
 }
 
 function test_disk_label()
@@ -170,8 +189,7 @@ function test_disk_label()
 	if [ "${PROVIDER}" == 'ec2' ]; then
 	 rc "cat /etc/fstab | grep /dev/sda1"
  	 assert "/sbin/e2label ${DSKa}1" "/"
-	 rc "cat /etc/fstab | grep /dev/sdb"
- 	 assert "/sbin/e2label ${DSKb}" "/mnt"
+ 	 assert "/sbin/e2label ${DSKa}2" "/mnt"
 	fi
 	if [ "${PROVIDER}" == 'ibm' ]; then
  	 assert "/sbin/e2label ${DSKa}1" "/boot"
@@ -201,7 +219,7 @@ function test_disk_label()
 
 function test_bash_history()
 {
-	new_test "## Verify bash_history"
+	new_test "## Verify bash_history ... "
 	assert "cat ~/.bash_history | wc -l " 0 
 }
 
@@ -301,7 +319,7 @@ function test_shells()
 
 function test_repos()
 {
-	new_test "### test repo files"
+	new_test "## test repo files ... "
 	assert "ls /etc/yum.repos.d/ | wc -l " 5
 	assert "ls /etc/yum.repos.d/redhat* | wc -l" 4
 	assert "ls /etc/yum.repos.d/rhel* | wc -l" 1
@@ -317,6 +335,14 @@ function test_gpg_keys()
 {
         new_test "## Verify GPG checking ... " 
 	assert "grep '^gpgcheck=1' /etc/yum.repos.d/redhat-*.repo | cut -d\= -f2 | sort -f | uniq" 1
+
+	new_test "## Verify GPG Keys ... "
+	assert "rpm -qa gpg-pubkey* | wc -l " 3
+
+	new_test "## Verify GPG RPMS ... "
+	assert "rpm -qa gpg-pubkey* | tail -n 1" "gpg-pubkey-37017186-45761324"
+	assert "rpm -qa gpg-pubkey* | tail -n 2 | grep 45e" "gpg-pubkey-217521f6-45e8a532"
+	assert "rpm -qa gpg-pubkey* | tail -n 3 | grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
 }
 
 function test_IPv6()
@@ -353,18 +379,18 @@ function test_chkconfig()
 {
         new_test "## Verify  chkconfig ... "
 	assert "chkconfig --list | grep crond | cut -f 5" "3:on"
-	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
+	assert "chkconfig --list | grep -w syslog | cut -f 5" "3:on"
 	assert "chkconfig --list | grep yum-updatesd | cut -f 5" "3:on"
 }
 
 
 function test_syslog()
 {
-        new_test "## Verify syslog is on ... " 
+        new_test "## Verify rsyslog is on ... " 
 	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
 
-	new_test "## Verify syslog config ... "
-	#assert "/usr/bin/diff ${DIFF_DIR}/rsyslog /etc/syslog.conf" # to-do fix
+	new_test "## Verify rsyslog config ... "
+	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
 }
 
 function test_auditd()
@@ -397,7 +423,12 @@ function test_uname()
 
 }
 
+function sos_report()
+{
+	rc "sosreport -a --batch"
+	rc "cp -Rv /tmp/sosreport* ${DIFF_DIR}/
 
+}
 
 
 
