@@ -65,21 +65,3 @@ PASS
 # NEW TEST: ## Verify GPG Keys ... 
 ######################################################################################
 COMMAND:  rpm -qa gpg-pubkey* | wc -l 
-RESULT: 3 
-EXPECTED RESULT: 3 
-RETURN CODE: 0
-PASS
-######################################################################################
-# NEW TEST: ## Verify GPG RPMS ... 
-######################################################################################
-COMMAND:  rpm -qa gpg-pubkey* | tail -n 1
-RESULT: gpg-pubkey-37017186-45761324 
-EXPECTED RESULT: gpg-pubkey-37017186-45761324 
-RETURN CODE: 0
-PASS
-COMMAND:  rpm -qa gpg-pubkey* | tail -n 2 | grep 45e
-RESULT: gpg-pubkey-217521f6-45e8a532 
-EXPECTED RESULT: gpg-pubkey-217521f6-45e8a532 
-RETURN CODE: 0
-PASS
-COMMAND:  rpm -qa gpg-pubkey* | tail -n 3 | grep 2fa6
