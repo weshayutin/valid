@@ -425,6 +425,7 @@ function test_uname()
 
 function sos_report()
 {
+	new_test "## Create a sosreport ... "
 	rc "sosreport -a --batch"
 	rc "cp -Rv /tmp/sosreport* ${DIFF_DIR}/"
 
