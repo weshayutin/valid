@@ -29,8 +29,14 @@ for i in $*
       --provider=*)
          PROVIDER="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
          ;;
-      --diffDirectory=*)
+      --diffDir=*)
          DIFF_DIR="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+         ;;
+      --description=*)
+         DESC="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+         ;;
+      --username=*)
+         USER="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
          ;;
       *)
          # unknown option 
@@ -38,7 +44,9 @@ for i in $*
            echo ""
            echo "Available options are:"
            echo "--provider         The cloude provider: ibm,ec2"
-           echo "--diffDirectory   The directory where the authoritive files exist"
+           echo "--diffDir   The directory where the authoritive files exist"
+           echo "--description   describe the test, used for bugzilla"
+           echo "--username   used for unique bug bugzilla creation"
            exit 1
            ;;
  esac
@@ -80,8 +88,11 @@ test_uname
 
 
 ### DONT REMOVE OR COMMENT OUT ###
-sos_report
 show_failures
+open_bugzilla
+sos_report
+remove_bugzilla_rpms
+exit
 ##################################
 
 

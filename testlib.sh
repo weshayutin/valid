@@ -425,21 +425,56 @@ function test_uname()
 
 function sos_report()
 {
-	new_test "## Create a sosreport ... "
-	rc "sosreport -a --batch"
-	rc "cp -Rv /tmp/sosreport* ${DIFF_DIR}/"
+	echo "## Create a sosreport ... "
+	echo "This may take 5 - 10 minutes"
+	sosreport -a --batch --ticket-number=${BUGZILLA}
+	echo ""
+	echo "Please attach the sosreport bz2 file to https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
 }
 
+function open_bugzilla()
+{
+	echo "Installing packages needed to open a bug report. The packages will be removed at the end of the test"
+	echo " "
+	rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-3.noarch.rpm
+	yum -y install python-bugzilla
+	new_test "## Open a bugzilla"
+	echo ""
+	echo "Please enter your bugzilla username and password"
+	echo ""
+	bugzilla login
+	BUGZILLA=`bugzilla new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$PROVIDER $USER $DESC" | cut -b "2-8"`
+	echo ""
+	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
+	echo ""
+	echo "Adding log file contents to bugzilla"
+	BUG_COMMENTS=`cat ${LOGFILE}` 
+        bugzilla modify $BUGZILLA -l "${BUG_COMMENTS}"
+	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
+}
+
+function remove_bugzilla_rpms()
+{
+	echo ""
+	echo "Removing epel-release and python-bugzilla"
+	rpm -e epel-release python-bugzilla
+}
 
 
 
 function show_failures()
 {
-## Summary ##
-echo "FAILURES = ${FAILURES}"
-echo "LOG FILE = ${LOGFILE}"
-exit ${FAILURES}
+	echo ""
+        echo "## Summary ##"
+	echo "FAILURES = ${FAILURES}"
+	echo "LOG FILE = ${LOGFILE}"
+        echo "## Summary ##"
+	echo ""
 }
 
+function exit()
+{
+	exit ${FAILURES}
+}
