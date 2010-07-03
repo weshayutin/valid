@@ -466,12 +466,12 @@ function remove_bugzilla_rpms()
 
 function show_failures()
 {
-	echo ""
-        echo "## Summary ##"
-	echo "FAILURES = ${FAILURES}"
-	echo "LOG FILE = ${LOGFILE}"
-        echo "## Summary ##"
-	echo ""
+	echo "" | $DLOG
+        echo "## Summary ##" | $DLOG
+	echo "FAILURES = ${FAILURES}" | $DLOG
+	echo "LOG FILE = ${LOGFILE}" | $DLOG
+        echo "## Summary ##" $DLOG
+	echo "" | $DLOG
 }
 
 function exit()
