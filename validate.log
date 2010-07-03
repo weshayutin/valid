@@ -1,0 +1,85 @@
+######################################################################################
+# NEW TEST: ## /sbin/getenforce ... 
+######################################################################################
+COMMAND:  /usr/sbin/getenforce
+RESULT: Enforcing 
+EXPECTED RESULT: Enforcing 
+RETURN CODE: 0
+PASS
+######################################################################################
+# NEW TEST: ## Verify SELINUX enforcing ... 
+######################################################################################
+COMMAND:  grep ^SELINUX= /etc/sysconfig/selinux | cut -d\= -f2
+RESULT: enforcing 
+EXPECTED RESULT: enforcing 
+RETURN CODE: 0
+PASS
+######################################################################################
+# NEW TEST: ## Verify SELINUXTYPE targeted ... 
+######################################################################################
+COMMAND:  grep ^SELINUXTYPE= /etc/sysconfig/selinux | cut -d\= -f2
+RESULT: targeted 
+EXPECTED RESULT: targeted 
+RETURN CODE: 0
+PASS
+######################################################################################
+# NEW TEST: ## Flip Selinux Permissive ... 
+######################################################################################
+COMMAND:  /usr/sbin/setenforce Permissive && /usr/sbin/getenforce
+RESULT: Permissive 
+EXPECTED RESULT: Permissive 
+RETURN CODE: 0
+PASS
+######################################################################################
+# NEW TEST: ## Flip Selinux Enforcing ... 
+######################################################################################
+COMMAND:  /usr/sbin/setenforce Enforcing && /usr/sbin/getenforce
+RESULT: Enforcing 
+EXPECTED RESULT: Enforcing 
+RETURN CODE: 0
+PASS
+######################################################################################
+# NEW TEST: ## Verify no missing packages ... 
+######################################################################################
+COMMAND: /bin/rpm -qa --queryformat='%{NAME}\n' > /tmp/rpmqa.tmp
+RETURN CODE: 0
+COMMAND: comm -23 /home/whayutin/valid/packages /tmp/rpmqa
+RETURN CODE: 0
+fonts-KOI8-R
+yum-utils
+COMMAND:  cat /tmp/package_diff | wc -l
+RESULT: 2 
+EXPECTED RESULT: 0 
+RETURN CODE: 0
+FAIL
+2
+######################################################################################
+# NEW TEST: ## Verify GPG checking ... 
+######################################################################################
+COMMAND:  grep '^gpgcheck=1' /etc/yum.repos.d/redhat-*.repo | cut -d\= -f2 | sort -f | uniq
+RESULT: 1 
+EXPECTED RESULT: 1 
+RETURN CODE: 0
+PASS
+######################################################################################
+# NEW TEST: ## Verify GPG Keys ... 
+######################################################################################
+COMMAND:  rpm -qa gpg-pubkey* | wc -l 
+RESULT: 3 
+EXPECTED RESULT: 3 
+RETURN CODE: 0
+PASS
+######################################################################################
+# NEW TEST: ## Verify GPG RPMS ... 
+######################################################################################
+COMMAND:  rpm -qa gpg-pubkey* | tail -n 1
+RESULT: gpg-pubkey-37017186-45761324 
+EXPECTED RESULT: gpg-pubkey-37017186-45761324 
+RETURN CODE: 0
+PASS
+COMMAND:  rpm -qa gpg-pubkey* | tail -n 2 | grep 45e
+RESULT: gpg-pubkey-217521f6-45e8a532 
+EXPECTED RESULT: gpg-pubkey-217521f6-45e8a532 
+RETURN CODE: 0
+PASS
+COMMAND:  rpm -qa gpg-pubkey* | tail -n 3 | grep 2fa6

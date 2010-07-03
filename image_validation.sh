@@ -78,7 +78,9 @@ test_syslog
 test_auditd
 test_uname
 
+
 ### DONT REMOVE OR COMMENT OUT ###
+sos_report
 show_failures
 ##################################
 
