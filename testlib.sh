@@ -153,12 +153,16 @@ function test_verify_rpms()
 	cat ${DIFF_DIR}/rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
 	
-        
         new_test "## Verify Version 1 ... " 
         assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
         
         new_test "## Verify Version 2 ... " 
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.5" # to-do, pass this in
+	
+	new_test "## Verify packager ... "
+	echo "for i in `rpm -qa`;do echo -n $i >> /tmp/Packager ; rpm -qi $i | grep Packager >> /tmp/Packager;done"
+	for i in `rpm -qa`;do echo -n $i >> /tmp/Packager ; rpm -qi $i | grep Packager >> /tmp/Packager;done
+	assert "cat /tmp/Packager | grep -v "Red Hat, Inc." | wc -l " 0
 }
 
 function test_install_package()
@@ -379,6 +383,7 @@ function test_iptables()
         new_test "## Verify iptables ... "
 	rc "/sbin/service iptables status > /tmp/iptables.txt"
 	assert "/usr/bin/diff ${DIFF_DIR}/iptables.txt /tmp/iptables.txt"
+
 }
 
 function test_chkconfig()
@@ -397,6 +402,9 @@ function test_syslog()
 
 	new_test "## Verify rsyslog config ... "
 	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
+	
+	new_test "## Verify syslog config ... "
+	assert "md5sum /etc/syslog.conf | cut -f 1 -d  \" \"" "213124ef612a63ae63d01e237e103488"
 }
 
 function test_auditd()
