@@ -192,10 +192,14 @@ function test_yum_update()
 function test_parted()
 {
         new_test "## Verify disks ... " 
-	assert "/sbin/parted --list | grep ${DSKa}1" "Disk /dev/sda1: 4096MB" # to-do, pass in the command and answer
-	if [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
+	if [ "${PROVIDER}" == 'ec2' ]; then
+	 assert "/sbin/parted --list | grep ${DSKa}1" "Disk /dev/sda1: 4096MB" # to-do, pass in the command and answer
+	elif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
 	 assert "/sbin/parted --list | grep ${DSKa}2" "Disk /dev/sda2: 160GB" # to-do, pass in the command and answer
 	 assert "/sbin/parted --list | grep ${DSKa}3" "Disk /dev/sda3: 940MB" # to-do, pass in the command and answer
+	fi
+	if [ "${PROVIDER}" == 'ibm' ]; then
+	 assert "/sbin/parted --list | grep ${DSKa}" "Disk /dev/hda: 188GB" # to-do, pass in the command and answer
 	fi
 }
 
@@ -210,28 +214,13 @@ function test_disk_label()
 	fi
 	if [ "${PROVIDER}" == 'ibm' ]; then
  	 assert "/sbin/e2label ${DSKa}1" "/boot"
+ 	 assert "/sbin/e2label ${DSKa}2" "/"
 	fi
 	
 	new_test "### Verify disk filesystem ... "
 	assert "/sbin/dumpe2fs ${DSKa}1"
+	assert "/sbin/dumpe2fs ${DSKa}2"
 	
-	# to-do fix for ibm
-	#new_test "## Verify mnt filesystem ... "
-	#if [ ${PROVIDER} == 'ec2' ]; then
-	# assert "/sbin/dumpe2fs ${DSKb}"
-	#else
-	# assert "/sbin/dumpe2fs /dev/${DSKb}"
-	#fi
-
-	#new_test "### Verify ${DSKa}3 label ... "
-	#if [ ${UNAMEI} == 'i386' ]; then
- 	# assert "/bin/grep ^${DSKa}3 /etc/fstab | awk '{print $2,$3}'" "swap swap"
- 	#elif [ ${UNAMEI} == 'x86_64' ]; then	
-	# assert "/bin/grep ^${DSKa}3 /etc/fstab | awk '{print $2,$3}'" ""
-	#elif [ ${PROVIDER} == 'ibm' ];then
-	# echo "no test"
-	#fi
-
 }
 
 function test_bash_history()
@@ -293,7 +282,11 @@ function test_group()
 	assert "cat /etc/group | grep daemon:x:2" "daemon:x:2:root,bin,daemon"
 	assert "cat /etc/group | grep nobody:x:99" "nobody:x:99:"
 	rc "useradd test_user"
-	assert "cat /etc/group | grep test_user" "test_user:x:500:"
+	if [ "${PROVIDER}" == 'ec2' ]; then
+	 assert "cat /etc/group | grep test_user" "test_user:x:500:"
+	elif [ "${PROVIDER}" == 'ibm' ]; then
+	 assert "cat /etc/group | grep test_user" "test_user:x:501:"
+	fi
 	
 }
 
@@ -309,7 +302,11 @@ function test_passwd()
 function test_modprobe()
 {
         new_test "## Verify new modprobe.conf file ... "
-	assert "cat /etc/modprobe.conf" "alias eth0 xennet"
+	if [ "${PROVIDER}" == 'ec2' ]; then
+	 assert "cat /etc/modprobe.conf" "alias eth0 xennet"
+	elif [ "${PROVIDER}" == 'ibm' ]; then
+	 assert "cat /etc/modprobe.conf" "alias scsi_hostadapter ata_piix"
+	fi
 }
 
 function test_inittab()
@@ -323,7 +320,11 @@ function test_inittab()
 function test_mtab()
 {
         new_test "## Verify new mtab file ... "
-	assert "cat /etc/mtab | grep ${DSKa}1" "/dev/sda1 / ext3 rw 0 0"
+	if [ "${PROVIDER}" == 'ec2' ]; then
+	 assert "cat /etc/mtab | grep ${DSKa}1" "/dev/sda1 / ext3 rw 0 0"
+	elif [ "${PROVIDER}" == 'ibm' ]; then
+	 assert "cat /etc/mtab | grep ${DSKa}2" "/dev/hda2 / ext3 rw 0 0"
+	fi
 }
 
 function test_shells()
