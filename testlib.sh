@@ -32,12 +32,15 @@ if [ -e "$TESTHDA" ]; then
  DSKa=/dev/hda
  DSKb=/dev/hdb
  DSKc=/dev/hdc
-fi
-if [ -e "$TESTSDA" ]; then
+ilif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
  DSKa=/dev/sda
  DSKb=/dev/sda
  DSKc=/dev/sda
+ilif [  "$UNAMEI" == "x86_64" ] && [ "$PROVIDER" == "ec2"  ]; then
+ DSKa=/dev/sda
 fi
+
+
 echo ""
 #echo  "DSKa = $DSKa"
 #echo  "DSKb = $DSKb"
@@ -180,8 +183,10 @@ function test_parted()
 {
         new_test "## Verify disks ... " 
 	assert "/sbin/parted --list | grep ${DSKa}1" "Disk /dev/sda1: 4096MB" # to-do, pass in the command and answer
-	assert "/sbin/parted --list | grep ${DSKa}2" "Disk /dev/sda2: 160GB" # to-do, pass in the command and answer
-	assert "/sbin/parted --list | grep ${DSKa}3" "Disk /dev/sda3: 940MB" # to-do, pass in the command and answer
+	if [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
+	 assert "/sbin/parted --list | grep ${DSKa}2" "Disk /dev/sda2: 160GB" # to-do, pass in the command and answer
+	 assert "/sbin/parted --list | grep ${DSKa}3" "Disk /dev/sda3: 940MB" # to-do, pass in the command and answer
+	fi
 }
 
 function test_disk_label()
@@ -190,6 +195,7 @@ function test_disk_label()
 	if [ "${PROVIDER}" == 'ec2' ]; then
 	 rc "cat /etc/fstab | grep /dev/sda1"
  	 assert "/sbin/e2label ${DSKa}1" "/"
+	elif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
  	 assert "/sbin/e2label ${DSKa}2" "/mnt"
 	fi
 	if [ "${PROVIDER}" == 'ibm' ]; then
