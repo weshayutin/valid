@@ -92,7 +92,7 @@ show_failures
 open_bugzilla
 sos_report
 remove_bugzilla_rpms
-exit
+im_exit
 ##################################
 
 

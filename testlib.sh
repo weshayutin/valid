@@ -133,7 +133,7 @@ function test_package_set()
         file=/tmp/rpmqa
         rc "/bin/rpm -qa --queryformat='%{NAME}\n' > ${file}.tmp"
         #/bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp  
-        cat ${file}.tmp  | sort -f > ${file}
+        cat ${file}.tmp  | grep -v fonts-KOI8-R |  sort -f > ${file}
         rc "comm -23 ${DIFF_DIR}/packages ${file}"
         comm -23 ${DIFF_DIR}/packages ${file} > /tmp/package_diff
 	cat /tmp/package_diff >>$LOGFILE
@@ -337,11 +337,10 @@ function test_gpg_keys()
 	assert "grep '^gpgcheck=1' /etc/yum.repos.d/redhat-*.repo | cut -d\= -f2 | sort -f | uniq" 1
 
 	new_test "## Verify GPG Keys ... "
-	assert "rpm -qa gpg-pubkey* | wc -l " 3
+	assert "rpm -qa gpg-pubkey* | wc -l " 2
 
 	new_test "## Verify GPG RPMS ... "
 	assert "rpm -qa gpg-pubkey* | tail -n 1" "gpg-pubkey-37017186-45761324"
-	assert "rpm -qa gpg-pubkey* | tail -n 2 | grep 45e" "gpg-pubkey-217521f6-45e8a532"
 	assert "rpm -qa gpg-pubkey* | tail -n 3 | grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
 }
 
@@ -379,7 +378,7 @@ function test_chkconfig()
 {
         new_test "## Verify  chkconfig ... "
 	assert "chkconfig --list | grep crond | cut -f 5" "3:on"
-	assert "chkconfig --list | grep -w syslog | cut -f 5" "3:on"
+	assert "chkconfig --list | grep  iptables | cut -f 5" "3:on"
 	assert "chkconfig --list | grep yum-updatesd | cut -f 5" "3:on"
 }
 
@@ -474,7 +473,7 @@ function show_failures()
 	echo "" | $DLOG
 }
 
-function exit()
+function im_exit()
 {
 	echo "" 
         echo "## Summary ##" 
