@@ -158,12 +158,17 @@ function test_verify_rpms()
         
         new_test "## Verify Version 2 ... " 
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.5" # to-do, pass this in
-	
+
 	new_test "## Verify packager ... "
-	`cat /dev/null > /tmp/Packager`
-	echo "for i in `rpm -qa`;do echo -n $i >> /tmp/Packager ; rpm -qi $i | grep Packager >> /tmp/Packager;done"
-	`for i in `rpm -qa`;do echo -n $i >> /tmp/Packager ; rpm -qi $i | grep Packager >> /tmp/Packager;done`
-	assert "cat /tmp/Packager | grep -v 'Red Hat, Inc.' | wc -l " 0
+        file=/tmp/Packager
+        `cat /dev/null > $file`
+        echo "for x in $file ;do echo -n $x >> $file; rpm -qi $x | grep Packager >> $file;done" >>$LOGFILE
+        for x in $(cat /tmp/rpmqa);do
+         echo -n $x >>$file
+         rpm -qi $x | grep Packager >>$file
+        done
+        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 0
+        cat $file | grep -v 'Red Hat, Inc.' >>$LOGFILE	
 }
 
 function test_install_package()
@@ -475,6 +480,7 @@ function remove_bugzilla_rpms()
 	echo ""
 	echo "Removing epel-release and python-bugzilla"
 	rpm -e epel-release python-bugzilla
+        rpm -e gpg-pubkey-217521f6-45e8a532	
 }
 
 
