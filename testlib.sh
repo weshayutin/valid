@@ -32,11 +32,11 @@ if [ -e "$TESTHDA" ]; then
  DSKa=/dev/hda
  DSKb=/dev/hdb
  DSKc=/dev/hdc
-ilif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
+elif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
  DSKa=/dev/sda
  DSKb=/dev/sda
  DSKc=/dev/sda
-ilif [  "$UNAMEI" == "x86_64" ] && [ "$PROVIDER" == "ec2"  ]; then
+elif [  "$UNAMEI" == "x86_64" ] && [ "$PROVIDER" == "ec2"  ]; then
  DSKa=/dev/sda
 fi
 
