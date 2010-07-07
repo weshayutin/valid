@@ -148,7 +148,7 @@ function test_verify_rpms()
 {
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
-        /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -f > ${file}
+        /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
 	cat $file >> $LOGFILE
 	cat ${DIFF_DIR}/rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
@@ -410,8 +410,9 @@ function test_syslog()
 	new_test "## Verify rsyslog config ... "
 	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
 	
-	new_test "## Verify syslog config ... "
-	assert "md5sum /etc/syslog.conf | cut -f 1 -d  \" \"" "213124ef612a63ae63d01e237e103488"
+    #deprecated 
+	#new_test "## Verify syslog config ... "
+	#assert "md5sum /etc/syslog.conf | cut -f 1 -d  \" \"" "213124ef612a63ae63d01e237e103488"
 }
 
 function test_auditd()
