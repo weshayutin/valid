@@ -358,8 +358,8 @@ function test_gpg_keys()
 	assert "rpm -qa gpg-pubkey* | wc -l " 2
 
 	new_test "## Verify GPG RPMS ... "
-	assert "rpm -qa gpg-pubkey* | tail -n 1" "gpg-pubkey-37017186-45761324"
-	assert "rpm -qa gpg-pubkey* | tail -n 3 | grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
+	assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-37017186-45761324"
+	assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
 }
 
 function test_IPv6()
