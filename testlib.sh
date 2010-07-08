@@ -73,7 +73,7 @@ function rc()
 function rc_outFile()
 {
 	echo "COMMAND: $1 $2" >>$LOGFILE
- 	$1 2>>${LOGFILE} 1> $2 
+ 	`eval $1 1>>${LOGFILE}` 
 	rc=$?
 	echo "RETURN CODE: $rc" >>$LOGFILE
 }
@@ -387,9 +387,11 @@ function test_sshd()
 
 function test_iptables()
 {
-        new_test "## Verify iptables ... "
-	rc "/sbin/service iptables status > /tmp/iptables.txt"
-	assert "/usr/bin/diff ${DIFF_DIR}/iptables.txt /tmp/iptables.txt"
+    new_test "## Verify iptables ... "
+    rc_outFile "/etc/init.d/iptables status"
+	assert "/etc/init.d/iptables status | grep :22 | grep ACCEPT | wc -l " "1" 
+	assert "/etc/init.d/iptables status | grep :80 | grep ACCEPT | wc -l " "1" 
+	assert "/etc/init.d/iptables status | grep :443 | grep ACCEPT | wc -l " "1" 
 
 }
 
@@ -417,18 +419,18 @@ function test_syslog()
 
 function test_auditd()
 {
-        new_test "## Verify auditd is on ... "
+    new_test "## Verify auditd is on ... "
 	assert "/sbin/chkconfig --list auditd | grep 3:on"
-        assert "/sbin/chkconfig --list auditd | grep 5:on"
+    assert "/sbin/chkconfig --list auditd | grep 5:on"
 
 	new_test "## Verify audit.rules ... "
-	assert "/usr/bin/diff ${DIFF_DIR}/audit.rules /etc/audit/audit.rules"
+	assert "md5sum /etc/audit/audit.rules | cut -f 1 -d  \" \"" "f9869e1191838c461f5b9051c78a638d"
 
 	new_test "## Verify auditd.conf ... "
-	assert "/usr/bin/diff ${DIFF_DIR}/auditd.conf /etc/audit/auditd.conf"
+	assert "md5sum /etc/audit/auditd.conf | cut -f 1 -d  \" \"" "612ddf28c3916530d47ef56a1b1ed1ed"
 
 	new_test "## Verify auditd sysconfig ... "
-	assert "/usr/bin/diff ${DIFF_DIR}/auditd /etc/sysconfig/auditd"
+	assert "md5sum /etc/sysconfig/auditd | cut -f 1 -d  \" \"" "123beb3a97a32d96eba4f11509e39da2"
 }
 
 function test_uname()
@@ -451,7 +453,7 @@ function sos_report()
 	echo "This may take 5 - 10 minutes"
 	sosreport -a --batch --ticket-number=${BUGZILLA} 1>/dev/null
 	echo ""
-	echo "Please attach the sosreport bz2 file to https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
+	#echo "Please attach the sosreport bz2 in file /tmp to https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
 }
 
@@ -486,6 +488,10 @@ function remove_bugzilla_rpms()
 	echo "Removing epel-release and python-bugzilla"
 	rpm -e epel-release python-bugzilla
         rpm -e gpg-pubkey-217521f6-45e8a532	
+    echo ""
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	echo "Please attach the sosreport bz2 in file /tmp to https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 }
 
 

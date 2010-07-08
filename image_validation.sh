@@ -14,6 +14,7 @@
 #
 # written by whayutin@redhat.com
 
+
 FAILURES=0
 
 if [ -z $1 ];then
@@ -35,18 +36,22 @@ for i in $*
       --description=*)
          DESC="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
          ;;
-      --username=*)
+      --imageID=*)
          USER="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
          ;;
       *)
          # unknown option 
-           echo " unknown option " 
+           echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
+           echo " This script will run through some basic sanity tests for a Red Hat Enterprise Linux image "
+           echo " A valid Red Hat bugzilla username and password will be required at the end of the script "
+           echo " http://bugzilla.redhat.com/ "
+           echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
            echo ""
            echo "Available options are:"
            echo "--provider         The cloude provider: ibm,ec2"
            echo "--diffDir   The directory where the authoritive files exist"
            echo "--description   describe the test, used for bugzilla"
-           echo "--username   used for unique bug bugzilla creation"
+           echo "--imageID   Please provide a unique id for the image"
            exit 1
            ;;
  esac
