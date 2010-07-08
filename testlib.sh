@@ -218,8 +218,8 @@ function test_disk_label()
 	fi
 	
 	new_test "### Verify disk filesystem ... "
-	assert "/sbin/dumpe2fs ${DSKa}1"
-	assert "/sbin/dumpe2fs ${DSKa}2"
+	assert "/sbin/dumpe2fs -h ${DSKa}1" 
+	assert "/sbin/dumpe2fs -h ${DSKa}2"
 	
 }
 
@@ -449,7 +449,7 @@ function sos_report()
 {
 	echo "## Create a sosreport ... "
 	echo "This may take 5 - 10 minutes"
-	sosreport -a --batch --ticket-number=${BUGZILLA}
+	sosreport -a --batch --ticket-number=${BUGZILLA} 1>/dev/null
 	echo ""
 	echo "Please attach the sosreport bz2 file to https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
@@ -471,8 +471,11 @@ function open_bugzilla()
 	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 	echo ""
 	echo "Adding log file contents to bugzilla"
-	BUG_COMMENTS=`cat ${LOGFILE}` 
-        bugzilla modify $BUGZILLA -l "${BUG_COMMENTS}"
+    BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
+    BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
+    bugzilla modify $BUGZILLA -l "${BUG_COMMENTS01}"
+    bugzilla modify $BUGZILLA -l "${BUG_COMMENTS02}"
+
 	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
 }
