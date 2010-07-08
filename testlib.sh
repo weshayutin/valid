@@ -388,10 +388,11 @@ function test_sshd()
 function test_iptables()
 {
     new_test "## Verify iptables ... "
-    rc_outFile "/etc/init.d/iptables status"
+    rc_outFile "/etc/init.d/iptables status | grep REJECT"
 	assert "/etc/init.d/iptables status | grep :22 | grep ACCEPT | wc -l " "1" 
 	assert "/etc/init.d/iptables status | grep :80 | grep ACCEPT | wc -l " "1" 
 	assert "/etc/init.d/iptables status | grep :443 | grep ACCEPT | wc -l " "1" 
+	assert "/etc/init.d/iptables status | grep REJECT | grep all | grep 0.0.0.0/0 | grep icmp-host-prohibited  wc -l " "1" 
 
 }
 
