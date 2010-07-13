@@ -39,11 +39,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%config image_validation.sh
-%config packages
-%config README
-%config rpmVerifyTable
-%config testlib.sh
+%config /usr/local/valid/image_validation.sh
+%config /usr/local/valid/packages
+%config /usr/local/valid/README
+%config /usr/local/valid/rpmVerifyTable
+%config /usr/local/valid/testlib.sh
 
 
 %changelog
