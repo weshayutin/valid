@@ -1,6 +1,6 @@
 Name: validate
 Version: 4.1	
-Release: 1%{?dist}
+Release: 1
 Summary: Validates a cloud providers image of Red Hat Enterprise Linux	
 
 Group: Development/Libraries
