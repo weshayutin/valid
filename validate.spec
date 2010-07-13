@@ -1,5 +1,5 @@
 Name: validate
-Version: 4.1	
+Version: 5.1	
 Release: 1
 Summary: Validates a cloud providers image of Red Hat Enterprise Linux	
 
@@ -47,7 +47,7 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Tue Jul 13 2010 Wes Hayutin 4.1-1
+* Tue Jul 13 2010 Wes Hayutin 5.1-1
 - initial build (whayutin@redhat.com)
 
 
