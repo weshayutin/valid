@@ -26,12 +26,12 @@ A shell script that will run tests to validate that the image of Red Hat Enterpr
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/usr/local
-cp  $RPM_BUILD_DIR/%{name}-%{version}/image_validation.sh $RPM_BUILD_ROOT/usr/local/
-cp  $RPM_BUILD_DIR/%{name}-%{version}/packages $RPM_BUILD_ROOT/usr/local/
-cp  $RPM_BUILD_DIR/%{name}-%{version}/README $RPM_BUILD_ROOT/usr/local/
-cp  $RPM_BUILD_DIR/%{name}-%{version}/rpmVerifyTable $RPM_BUILD_ROOT/usr/local/
-cp  $RPM_BUILD_DIR/%{name}-%{version}/testlib.sh $RPM_BUILD_ROOT/usr/local/
+mkdir -p $RPM_BUILD_ROOT/usr/local/valid
+cp  $RPM_BUILD_DIR/%{name}-%{version}/image_validation.sh $RPM_BUILD_ROOT/usr/local/valid
+cp  $RPM_BUILD_DIR/%{name}-%{version}/packages $RPM_BUILD_ROOT/usr/local/valid
+cp  $RPM_BUILD_DIR/%{name}-%{version}/README $RPM_BUILD_ROOT/usr/local/valid
+cp  $RPM_BUILD_DIR/%{name}-%{version}/rpmVerifyTable $RPM_BUILD_ROOT/usr/local/valid
+cp  $RPM_BUILD_DIR/%{name}-%{version}/testlib.sh $RPM_BUILD_ROOT/usr/local/valid
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -39,11 +39,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%config %{_sysconfdir}/image_validation.sh
-%config %{_sysconfdir}/packages
-%config %{_sysconfdir}/README
-%config %{_sysconfdir}/rpmVerifyTable
-%config %{_sysconfdir}/testlib.sh
+%config image_validation.sh
+%config packages
+%config README
+%config rpmVerifyTable
+%config testlib.sh
 
 
 %changelog
