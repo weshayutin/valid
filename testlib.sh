@@ -502,7 +502,7 @@ function open_bugzilla()
 	echo "Please enter your bugzilla username and password"
 	echo ""
 	bugzilla login
-	BUGZILLA=`bugzilla new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$PROVIDER $USER $DESC" | cut -b "2-8"`
+	BUGZILLA=`bugzilla new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$email $IMAGEID $SYSDATE" | cut -b "2-8"`
 	echo ""
 	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 	echo ""
