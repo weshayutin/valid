@@ -20,7 +20,7 @@ DLOG=" tee -a ${LOGFILE} " #Display and log output
 cat /dev/null > $LOGFILE
 RSLT=""
 LOGRESULT="echo ${RSLT} 1>>$LOGFILE 2>>$LOGFILE"
-
+DIFFDIR=$PWD
 SYSDATE=$( stat /etc/sysconfig/hwconf | grep ^Change:  | awk '{print $2,$3}' | cut -d: -f1,2 )
 UNAMEI=$( /bin/uname -i )
 
@@ -35,7 +35,7 @@ txtrst=$(tput sgr0)       # Text reset
 rm -Rf disk_partitions
 rm -Rf swap_partitions
 parted -l  | grep Disk | awk '{print $2}' > tmp1_partitions
-for i in `cat tmp_partitions`;do echo $i | sed '$s/.$//' >> tmp2_partitions;done
+for i in `cat tmp1_partitions`;do echo $i | sed '$s/.$//' >> tmp2_partitions;done
 for part in `cat tmp2_partitions`;do
    cat /etc/fstab | grep $part | grep swap 2>&1 > /dev/null
    rc=$?
@@ -49,6 +49,7 @@ done
 rm -Rf tmp1_partitions tmp2_partitions
 ### End:  Create a list of partitions
 
+echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
 
 function new_test()
 {
@@ -65,6 +66,11 @@ function rc()
  	RSLT=`eval $1 2>>${LOGFILE}`
 	rc=$?
 	echo "RETURN CODE: $rc" >>$LOGFILE
+}
+
+function rq()
+{
+	echo "QUESTION: $1" 
 }
 
 #runs a basic command and redirects stdout to file $2
@@ -105,11 +111,67 @@ function assert()
         fi
 }
 
+function userInput_CloudProvider()
+{
+	echo ""
+	echo "******** Please answer the following questions *********"
+	new_test  "Cloud Provider Basic Information.." 
+	echo ""
+	rq "What is the cloud providers company name?"
+	read answer
+	echo $answer >>$LOGFILE
+	rq "What is your full name?"
+	read answer
+	echo $answer >>$LOGFILE
+	rq "What is your email address?"
+	read email
+	echo $email >>$LOGFILE
+}
+
+function userInput_Filesystem()
+{
+	echo ""
+	echo "******** Please answer the following questions *********"
+	new_test "Non-Standard Image Layout or Filesystem Types.." 
+	echo ""
+	rq "If this image contains a non standard partition or filesystem, please describe it"
+	read answer
+	echo $answer >>$LOGFILE
+}
+
+function userInput_Errata_Notification()
+{
+	echo ""
+	echo "******** Please answer the following questions *********"
+	new_test "Description of Errata Notification Procedure/Process to be Used to Notify Cloud Users" 
+	echo ""
+	rq "Please describe the process to be used in order to notify Cloud Users of errata and critical updates."
+	read answer
+	echo $answer >>$LOGFILE
+}
+
+function userInput_Availability()
+{
+	echo ""
+	echo "******** Please answer the following questions *********"
+	new_test "Description of Policy for Availability of Updated Starter Images" 
+	echo ""
+	rq "Please clearly define the policy for making starter images available."
+	read answer
+	echo $answer >>$LOGFILE
+	new_test "Description of Policy for retiring  starter images" 
+	echo ""
+	rq "Please clearly define the policy for retiring "
+	read answer
+	echo $answer >>$LOGFILE
+}
+
 function test_disk_size()
 {
- 	echo "## Partition Size TESTS ..."
+ 	new_test "## Partition Size ..."
  	for part in $(cat disk_partitions);do
-         size=`df -k $part | awk '{print $2}' | tail -n 1`
+	echo "size=`df -k $part | awk '{ print $2 }' | tail -n 1`" >> $LOGFILE
+        size=`df -k $part | awk '{ print $2 }' | tail -n 1`
   	 if [ "$size" -gt "3937219" ]
 	  then
 	   echo "$part is 4gb or greater"
@@ -119,7 +181,16 @@ function test_disk_size()
 	   assert "echo false" true
   	 fi
         done
+}
 
+function test_disk_format()
+{
+ 	new_test "## Partition Format  ..."
+ 	for part in $(cat disk_partitions);do
+	echo "cat /etc/fstab | grep $part | awk '{ print $3 }'" >> $LOGFILE
+	result=`cat /etc/fstab | grep $part | awk '{ print $3 }'`
+	 assert "echo $result" ext3
+	done
 }
 
 
@@ -151,8 +222,8 @@ function test_package_set()
         rc "/bin/rpm -qa --queryformat='%{NAME}\n' > ${file}.tmp"
         #/bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp  
         cat ${file}.tmp  |  sort -f > ${file}
-        rc "comm -23 ${DIFF_DIR}/packages ${file}"
-        comm -23 ${DIFF_DIR}/packages ${file} > /tmp/package_diff
+        rc "comm -23 packages ${file}"
+        comm -23 packages ${file} > /tmp/package_diff
 	cat /tmp/package_diff >>$LOGFILE
 	assert "cat /tmp/package_diff | wc -l" 1
 	echo "Known sorting error on package=fonts-KOI8-R" >>$LOGFILE
@@ -164,7 +235,7 @@ function test_verify_rpms()
         new_test "## Verify RPMs ... " 
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
 	cat $file >> $LOGFILE
-	cat ${DIFF_DIR}/rpmVerifyTable >> $LOGFILE
+	cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
 	
         new_test "## Verify Version 1 ... " 
@@ -184,6 +255,31 @@ function test_verify_rpms()
         assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 0
         cat $file | grep -v 'Red Hat, Inc.' >>$LOGFILE	
 }
+
+function test_install_package()
+{
+        new_test "## install zsh ... "
+        rc "/usr/bin/yum -y install zsh"
+        assert "/bin/rpm -q --queryformat '%{NAME}\n' zsh" zsh
+
+        new_test "## Verify package removal ... "
+        rc "/bin/rpm -e zsh"
+        assert "/bin/rpm -q zsh" "package zsh is not installed"
+
+}
+
+function test_yum_update()
+{
+        new_test "## Verify yum update ... " 
+	assert "/usr/bin/yum -y update"
+}
+
+function test_bash_history()
+{
+	new_test "## Verify bash_history ... "
+	assert "cat ~/.bash_history | wc -l " 0 
+}
+
 
 function test_install_package()
 {
@@ -246,13 +342,6 @@ function test_group()
 	assert "cat /etc/group | grep bin:x:1" "bin:x:1:root,bin,daemon"
 	assert "cat /etc/group | grep daemon:x:2" "daemon:x:2:root,bin,daemon"
 	assert "cat /etc/group | grep nobody:x:99" "nobody:x:99:"
-	rc "useradd test_user"
-	if [ "${PROVIDER}" == 'ec2' ]; then
-	 assert "cat /etc/group | grep test_user" "test_user:x:500:"
-	elif [ "${PROVIDER}" == 'ibm' ]; then
-	 assert "cat /etc/group | grep test_user" "test_user:x:501:"
-	fi
-	
 }
 
 function test_passwd()
@@ -261,17 +350,6 @@ function test_passwd()
 	assert "cat /etc/passwd | grep root:x:0" "root:x:0:0:root:/root:/bin/bash"
 	assert "cat /etc/passwd | grep nobody:x:99" "nobody:x:99:99:Nobody:/:/sbin/nologin"
 	assert "cat /etc/passwd | grep sshd" "sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin"
-}
-
-
-function test_modprobe()
-{
-        new_test "## Verify new modprobe.conf file ... "
-	if [ "${PROVIDER}" == 'ec2' ]; then
-	 assert "cat /etc/modprobe.conf" "alias eth0 xennet"
-	elif [ "${PROVIDER}" == 'ibm' ]; then
-	 assert "cat /etc/modprobe.conf" "alias scsi_hostadapter ata_piix"
-	fi
 }
 
 function test_inittab()
@@ -343,13 +421,12 @@ function test_sshd()
 
 function test_iptables()
 {
-    new_test "## Verify iptables ... "
-    rc_outFile "/etc/init.d/iptables status | grep REJECT"
+        new_test "## Verify iptables ... "
+        rc_outFile "/etc/init.d/iptables status | grep REJECT"
 	assert "/etc/init.d/iptables status | grep :22 | grep ACCEPT | wc -l " "1" 
 	assert "/etc/init.d/iptables status | grep :80 | grep ACCEPT | wc -l " "1" 
 	assert "/etc/init.d/iptables status | grep :443 | grep ACCEPT | wc -l " "1" 
 	assert "/etc/init.d/iptables status | grep REJECT | grep all | grep 0.0.0.0/0 | grep icmp-host-prohibited |  wc -l " "1" 
-
 }
 
 function test_chkconfig()
@@ -369,7 +446,7 @@ function test_syslog()
 	new_test "## Verify rsyslog config ... "
 	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
 	
-    #deprecated 
+    	#deprecated 
 	#new_test "## Verify syslog config ... "
 	#assert "md5sum /etc/syslog.conf | cut -f 1 -d  \" \"" "213124ef612a63ae63d01e237e103488"
 }
@@ -378,7 +455,7 @@ function test_auditd()
 {
     new_test "## Verify auditd is on ... "
 	assert "/sbin/chkconfig --list auditd | grep 3:on"
-    assert "/sbin/chkconfig --list auditd | grep 5:on"
+        assert "/sbin/chkconfig --list auditd | grep 5:on"
 
 	new_test "## Verify audit.rules ... "
 	assert "md5sum /etc/audit/audit.rules | cut -f 1 -d  \" \"" "f9869e1191838c461f5b9051c78a638d"
@@ -430,14 +507,14 @@ function open_bugzilla()
 	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 	echo ""
 	echo "Adding log file contents to bugzilla"
-    BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
-    BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
-    bugzilla modify $BUGZILLA -l "${BUG_COMMENTS01}"
-    bugzilla modify $BUGZILLA -l "${BUG_COMMENTS02}"
+	BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
+        BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
+        bugzilla modify $BUGZILLA -l "${BUG_COMMENTS01}"
+        bugzilla modify $BUGZILLA -l "${BUG_COMMENTS02}"
 
 	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
-
 }
+
 
 function remove_bugzilla_rpms()
 {
