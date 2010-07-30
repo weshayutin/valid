@@ -23,33 +23,31 @@ LOGRESULT="echo ${RSLT} 1>>$LOGFILE 2>>$LOGFILE"
 
 SYSDATE=$( stat /etc/sysconfig/hwconf | grep ^Change:  | awk '{print $2,$3}' | cut -d: -f1,2 )
 UNAMEI=$( /bin/uname -i )
-#UNAMEP=$( /bin/uname -p )
-#UNAMEM=$( /bin/uname -m )
-#HOSTNAME=$( /bin/hostname )
-TESTHDA="/dev/hda"
-TESTSDA="/dev/sda1"
-if [ -e "$TESTHDA" ]; then
- DSKa=/dev/hda
- DSKb=/dev/hdb
- DSKc=/dev/hdc
-elif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
- DSKa=/dev/sda
- DSKb=/dev/sda
- DSKc=/dev/sda
-elif [  "$UNAMEI" == "x86_64" ] && [ "$PROVIDER" == "ec2"  ]; then
- DSKa=/dev/sda
-fi
-
 
 echo ""
-#echo  "DSKa = $DSKa"
-#echo  "DSKb = $DSKb"
-#echo  "DSKc = $DSKc"
 echo ""
 
 txtred=$(tput setaf 1)    # Red
 txtgrn=$(tput setaf 2)    # Green
 txtrst=$(tput sgr0)       # Text reset
+
+### Begin:  Create a list of partitions
+rm -Rf disk_partitions
+rm -Rf swap_partitions
+parted -l  | grep Disk | awk '{print $2}' > tmp1_partitions
+for i in `cat tmp_partitions`;do echo $i | sed '$s/.$//' >> tmp2_partitions;done
+for part in `cat tmp2_partitions`;do
+   cat /etc/fstab | grep $part | grep swap 2>&1 > /dev/null
+   rc=$?
+   if [ "$rc" == "1" ]
+      then
+      echo "$part" >> disk_partitions
+   else
+      echo "$part" >> swap_partitions
+   fi
+done
+rm -Rf tmp1_partitions tmp2_partitions
+### End:  Create a list of partitions
 
 
 function new_test()
@@ -107,6 +105,22 @@ function assert()
         fi
 }
 
+function test_disk_size()
+{
+ 	echo "## Partition Size TESTS ..."
+ 	for part in $(cat disk_partitions);do
+         size=`df -k $part | awk '{print $2}' | tail -n 1`
+  	 if [ "$size" -gt "3937219" ]
+	  then
+	   echo "$part is 4gb or greater"
+	   assert "echo true" true
+          else  
+	   echo "$part is NOT 4gb or greater"
+	   assert "echo false" true
+  	 fi
+        done
+
+}
 
 
 function test_selinux()
@@ -189,39 +203,6 @@ function test_yum_update()
 	assert "/usr/bin/yum -y update"
 }
 
-function test_parted()
-{
-        new_test "## Verify disks ... " 
-	if [ "${PROVIDER}" == 'ec2' ]; then
-	 assert "/sbin/parted --list | grep ${DSKa}1" "Disk /dev/sda1: 4096MB" # to-do, pass in the command and answer
-	elif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
-	 assert "/sbin/parted --list | grep ${DSKa}2" "Disk /dev/sda2: 160GB" # to-do, pass in the command and answer
-	 assert "/sbin/parted --list | grep ${DSKa}3" "Disk /dev/sda3: 940MB" # to-do, pass in the command and answer
-	fi
-	if [ "${PROVIDER}" == 'ibm' ]; then
-	 assert "/sbin/parted --list | grep ${DSKa}" "Disk /dev/hda: 188GB" # to-do, pass in the command and answer
-	fi
-}
-
-function test_disk_label()
-{
-        new_test "## Verify disk labels ... " 
-	if [ "${PROVIDER}" == 'ec2' ]; then
-	 rc "cat /etc/fstab | grep /dev/sda1"
- 	 assert "/sbin/e2label ${DSKa}1" "/"
-	elif [  "$UNAMEI" == "i386" ] && [ "$PROVIDER" == "ec2"  ]; then
- 	 assert "/sbin/e2label ${DSKa}2" "/mnt"
-	fi
-	if [ "${PROVIDER}" == 'ibm' ]; then
- 	 assert "/sbin/e2label ${DSKa}1" "/boot"
- 	 assert "/sbin/e2label ${DSKa}2" "/"
-	fi
-	
-	new_test "### Verify disk filesystem ... "
-	assert "/sbin/dumpe2fs -h ${DSKa}1" 
-	assert "/sbin/dumpe2fs -h ${DSKa}2"
-	
-}
 
 function test_bash_history()
 {
@@ -232,9 +213,8 @@ function test_bash_history()
 function test_swap_file()
 {
 	new_test "## Verify swap file ... "
-	if [ "${PROVIDER}" == 'ec2' ]; then
-	 assert "/sbin/swapoff ${DSKa}3 && /sbin/swapon ${DSKa}3"
-	fi
+	swap=`cat swap_partitions`
+	assert "/sbin/swapoff $swap && /sbin/swapon $swap"
 }
 
 function test_system_id()
@@ -258,21 +238,6 @@ function test_nameserver()
 	new_test "## Verify nameserver ... "
 	assert "/usr/bin/dig clock.redhat.com 2>> $LOGFILE | grep 66.187.233.4  | wc -l"
 }
-
-
-#function test_securetty()
-#{
-#       echo -n "### Verify new securetty file ... " | $DLOG
-#       
-#       DATE=$( stat /etc/securetty | grep ^Change:  | awk '{print $2,$3}' | cut -d: -f1,2 )
-#       if [ -f /etc/securetty -a "${SYSDATE}" == "${DATE}" ]; then
-#         echo "PASS" | $DLOG
-#       else
-#         echo "FAIL" | $DLOG
-#         echo "${SYSDATE} != ${DATE}"
-#       fi
-#}
-
 
 function test_group()
 {
@@ -317,15 +282,6 @@ function test_inittab()
 
 }
 
-function test_mtab()
-{
-        new_test "## Verify new mtab file ... "
-	if [ "${PROVIDER}" == 'ec2' ]; then
-	 assert "cat /etc/mtab | grep ${DSKa}1" "/dev/sda1 / ext3 rw 0 0"
-	elif [ "${PROVIDER}" == 'ibm' ]; then
-	 assert "cat /etc/mtab | grep ${DSKa}2" "/dev/hda2 / ext3 rw 0 0"
-	fi
-}
 
 function test_shells()
 {

@@ -57,16 +57,20 @@ for i in $*
  esac
 done
 
+echo ""
+echo "" 
+echo "***************** DETAILED RESULTS LOGGED TO validate.log  ********************************"
+
 source $PWD/testlib.sh
-echo "## START TESTS ... "
+echo "##### START TESTS #####"
+echo ""
+test_disk_size
 test_selinux
 test_package_set
 test_gpg_keys
 test_verify_rpms
 test_install_package
-test_parted
 test_yum_update
-test_disk_label
 test_swap_file
 test_bash_history
 test_system_id
@@ -77,7 +81,6 @@ test_group
 test_passwd
 test_inittab
 test_modprobe
-test_mtab
 test_shells
 test_repos
 test_yum_plugin
@@ -94,9 +97,9 @@ test_uname
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
-open_bugzilla
-sos_report
-remove_bugzilla_rpms
+#open_bugzilla
+#sos_report
+#remove_bugzilla_rpms
 im_exit
 ##################################
 
