@@ -13,7 +13,7 @@
 # in this software or its documentation.
 #
 # written by whayutin@redhat.com
-
+# modified by kbidarka@redhat.com for RHEL 6
 
 FAILURES=0
 
@@ -87,7 +87,7 @@ test_chkconfig
 test_syslog
 test_auditd
 test_uname
-test_swap_file
+#test_swap_file
 
 
 ### DONT REMOVE OR COMMENT OUT ###
