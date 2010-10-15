@@ -13,6 +13,7 @@
 # in this software or its documentation.
 #
 # written by whayutin@redhat.com
+# modified by kbidarka@redhat.com
 
 FAILURES=0
 LOGFILE=$PWD/validate.log
@@ -21,7 +22,7 @@ cat /dev/null > $LOGFILE
 RSLT=""
 LOGRESULT="echo ${RSLT} 1>>$LOGFILE 2>>$LOGFILE"
 DIFFDIR=$PWD
-SYSDATE=$( stat /etc/sysconfig/hwconf | grep ^Change:  | awk '{print $2,$3}' | cut -d: -f1,2 )
+SYSDATE=$( /bin/date '+%Y-%m-%d %H:%M' )
 UNAMEI=$( /bin/uname -i )
 
 echo ""
@@ -34,22 +35,29 @@ txtrst=$(tput sgr0)       # Text reset
 ### Begin:  Create a list of partitions
 rm -Rf disk_partitions
 rm -Rf swap_partitions
-parted -l  | grep Disk | awk '{print $2}' > tmp1_partitions
-for i in `cat tmp1_partitions`;do echo $i | sed '$s/.$//' >> tmp2_partitions;done
-for part in `cat tmp2_partitions`;do
-   cat /etc/fstab | grep $part | grep swap 2>&1 > /dev/null
-   rc=$?
-   if [ "$rc" == "1" ]
-      then
-      echo "$part" >> disk_partitions
-   else
-      echo "$part" >> swap_partitions
-   fi
-done
+#parted -l  | grep Disk | awk '{print $2}' > tmp1_partitions
+#for i in `cat tmp1_partitions`;do echo $i | sed '$s/.$//' >> tmp2_partitions;done
+mount | grep ^/dev | awk '{print $1}' >> disk_partitions
+parted -l | grep -B 5 swap | grep ^Disk | awk '{print $2}' | sed '$s/.$//' >> swap_partitions
+#for part in `cat tmp2_partitions`;do
+#   cat /etc/fstab | grep -x $part | grep swap 2>&1 > /dev/null
+#   rc=$?
+#   if [ "$rc" == "1" ]
+#      then
+#      echo "$part" >> disk_partitions
+#   else
+#      echo "$part" >> swap_partitions
+#   fi
+#done
+
 rm -Rf tmp1_partitions tmp2_partitions
 ### End:  Create a list of partitions
 
+RHEL=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $1}'`
+
 echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
+
+
 
 function new_test()
 {
@@ -99,7 +107,7 @@ function assert()
          #echo "IN SECOND TEST" >>$LOGFILE
          echo "${txtgrn}PASS${txtrst}" 
          echo "PASS" >> $LOGFILE
-        elif [ -z $option ] && [ "$rc" == 0 ];then
+        elif [ -z "$option" ] && [ "$rc" == 0 ];then
          #echo "IN THIRD TEST" >>$LOGFILE
          echo "${txtgrn}PASS${txtrst}" 
          echo "PASS" >> $LOGFILE
@@ -187,9 +195,19 @@ function test_disk_format()
 {
  	new_test "## Partition Format  ..."
  	for part in $(cat disk_partitions);do
-	echo "cat /etc/fstab | grep $part | awk '{ print $3 }'" >> $LOGFILE
-	result=`cat /etc/fstab | grep $part | awk '{ print $3 }'`
-	 assert "echo $result" ext3
+	echo "mount | grep $part | awk '{ print $5 }'" >> $LOGFILE
+	result=`mount | grep $part | awk '{ print $5 }'`
+
+	if [ $RHEL == 5 ] ; then
+	assert "echo $result" ext3
+	else
+	ext=`mount | grep $part | awk '{print $3}'`
+        if [ "$ext" == "/" ] ; then 
+	 assert "echo $result" "ext4"
+	else
+	 assert "echo $result" "ext3"
+	fi
+	fi
 	done
 }
 
@@ -222,8 +240,13 @@ function test_package_set()
         rc "/bin/rpm -qa --queryformat='%{NAME}\n' > ${file}.tmp"
         #/bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp  
         cat ${file}.tmp  |  sort -f > ${file}
-        rc "comm -23 packages ${file}"
-        comm -23 packages ${file} > /tmp/package_diff
+	if [ $RHEL == 5 ] ; then
+        rc "comm -23 packages_5 ${file}"
+        comm -23 packages_5 ${file} > /tmp/package_diff
+	else
+	rc "comm -23 packages_6 ${file}"
+        comm -23 packages_6 ${file} > /tmp/package_diff
+        fi
 	cat /tmp/package_diff >>$LOGFILE
 	assert "cat /tmp/package_diff | wc -l" 1
 	echo "Known sorting error on package=fonts-KOI8-R" >>$LOGFILE
@@ -237,17 +260,22 @@ function test_verify_rpms()
 	cat $file >> $LOGFILE
 	cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
-	
+        if [ $RHEL == 5 ] ; then
         new_test "## Verify Version 1 ... " 
-        assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
-        
-        new_test "## Verify Version 2 ... " 
+	assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
+       new_test "## Verify Version 2 ... "
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.5" # to-do, pass this in
-
+	else
+        new_test "## Verify Version 1 ... " 
+	assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 6.0 (Santiago)" # to-do, pass this in
+        new_test "## Verify Version 2 ... " 
+        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release-server | cut -d. -f1,2" "6.0" # to-do, pass this in
+	fi
+        
 	new_test "## Verify packager ... "
         file=/tmp/Packager
-        `cat /dev/null > $file`
-        echo "for x in $file ;do echo -n $x >> $file; rpm -qi $x | grep Packager >> $file;done" >>$LOGFILE
+        #`cat /dev/null > $file`
+        #echo "for x in $file ;do echo -n $x >> $file; rpm -qi $x | grep Packager >> $file;done" >>$LOGFILE
         for x in $(cat /tmp/rpmqa);do
          echo -n $x >>$file
          rpm -qi $x | grep Packager >>$file
@@ -280,31 +308,6 @@ function test_bash_history()
 	assert "cat ~/.bash_history | wc -l " 0 
 }
 
-
-function test_install_package()
-{
-        new_test "## install zsh ... "
-        rc "/usr/bin/yum -y install zsh"
-        assert "/bin/rpm -q --queryformat '%{NAME}\n' zsh" zsh
-
-        new_test "## Verify package removal ... "
-        rc "/bin/rpm -e zsh"
-        assert "/bin/rpm -q zsh" "package zsh is not installed"
-
-}
-
-function test_yum_update()
-{
-        new_test "## Verify yum update ... " 
-	assert "/usr/bin/yum -y update"
-}
-
-
-function test_bash_history()
-{
-	new_test "## Verify bash_history ... "
-	assert "cat ~/.bash_history | wc -l " 0 
-}
 
 function test_swap_file()
 {
@@ -354,10 +357,14 @@ function test_passwd()
 
 function test_inittab()
 {
-	new_test "## Verify inittab ... " 
+        if [ $RHEL == 5 ] ;then
+	new_test "## Verify runlevel ... " 
 	assert "cat /etc/inittab | grep id:" "id:3:initdefault:"
 	assert "cat /etc/inittab | grep si:" "si::sysinit:/etc/rc.d/rc.sysinit"
-
+	else	
+	new_test "## Verify runlevel ... " 
+	assert "cat /etc/inittab | grep id:" "id:3:initdefault:"
+	fi
 }
 
 
@@ -365,7 +372,6 @@ function test_shells()
 {
         new_test "## Verify new shells file ... " 
 	assert "cat /etc/shells | grep bash" "/bin/bash"
-	assert "cat /etc/shells | grep ksh" "/bin/ksh"
 	assert "cat /etc/shells | grep nologin" "/sbin/nologin"
 }
 
@@ -420,13 +426,32 @@ function test_sshd()
 
 
 function test_iptables()
-{
+{       
+	if [ $RHEL == 5 ]; then
         new_test "## Verify iptables ... "
         rc_outFile "/etc/init.d/iptables status | grep REJECT"
 	assert "/etc/init.d/iptables status | grep :22 | grep ACCEPT | wc -l " "1" 
-	assert "/etc/init.d/iptables status | grep :80 | grep ACCEPT | wc -l " "1" 
-	assert "/etc/init.d/iptables status | grep :443 | grep ACCEPT | wc -l " "1" 
-	assert "/etc/init.d/iptables status | grep REJECT | grep all | grep 0.0.0.0/0 | grep icmp-host-prohibited |  wc -l " "1" 
+	assert "/etc/init.d/iptables status | grep "dpt:631" | grep ACCEPT | wc -l " "2"
+#	assert "/etc/init.d/iptables status | grep "icmp type" | grep ACCEPT | wc -l" "1"
+	assert "/etc/init.d/iptables status | grep "dpt:5353" | grep ACCEPT | wc -l" "1"
+	assert "/etc/init.d/iptables status | grep "RELATED,ESTABLISHED" | grep ACCEPT | wc -l" "1"
+	assert "/etc/init.d/iptables status | grep -e esp -e ah | grep ACCEPT | wc -l" "2"	
+#	assert "/etc/init.d/iptables status | grep :80 | grep ACCEPT | wc -l " "1" 
+#	assert "/etc/init.d/iptables status | grep :443 | grep ACCEPT | wc -l " "1" 
+	assert "/etc/init.d/iptables status | grep REJECT | grep all | grep 0.0.0.0/0 | grep icmp-host-prohibited |  wc -l" "1" 
+	else
+        new_test "## Verify iptables ... "
+        rc_outFile "/etc/init.d/iptables status | grep REJECT"
+        assert "/etc/init.d/iptables status | grep :22 | grep ACCEPT | wc -l " "1"
+        assert "/etc/init.d/iptables status | grep "dpt:631" | grep ACCEPT | wc -l " "2"
+#       assert "/etc/init.d/iptables status | grep "icmp type" | grep ACCEPT | wc -l" "1"
+        assert "/etc/init.d/iptables status | grep "dpt:5353" | grep ACCEPT | wc -l" "1"
+        assert "/etc/init.d/iptables status | grep "RELATED,ESTABLISHED" | grep ACCEPT | wc -l" "1"
+        assert "/etc/init.d/iptables status | grep -e esp -e ah | grep ACCEPT | wc -l" "2"
+#       assert "/etc/init.d/iptables status | grep :80 | grep ACCEPT | wc -l " "1"
+#       assert "/etc/init.d/iptables status | grep :443 | grep ACCEPT | wc -l " "1"
+        assert "/etc/init.d/iptables status | grep REJECT | grep all | grep 0.0.0.0/0 | grep icmp-host-prohibited |  wc -l" "1"
+	fi
 }
 
 function test_chkconfig()
@@ -442,10 +467,13 @@ function test_syslog()
 {
         new_test "## Verify rsyslog is on ... " 
 	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
-
+	if [ $RHEL == 5 ] ; then
 	new_test "## Verify rsyslog config ... "
 	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
-	
+	else
+	new_test "## Verify rsyslog config ... "
+	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "dd356958ca9c4e779f7fac13dde3c1b5"
+	fi
     	#deprecated 
 	#new_test "## Verify syslog config ... "
 	#assert "md5sum /etc/syslog.conf | cut -f 1 -d  \" \"" "213124ef612a63ae63d01e237e103488"
@@ -472,10 +500,23 @@ function test_uname()
         new_test "## Verify kernel name ... "
 	assert "/bin/uname -s" Linux
 
+	#if [ $RHEL == 5 ] ; then
 	new_test "## Verify kernel release ... "
-	rt=`rpm -qa kernel\* --queryformat="%{VERSION}-%{RELEASE}\n" | sort -f | uniq`
-	assert "/bin/uname -r | sed -e 's/xen$//g'" $rt
-
+	DEF=`cat /boot/grub/grub.conf | awk -F= '/default/ {print $2}'`
+	let DEF++
+	cat /boot/grub/grub.conf | awk '/title/ {print $NF}' | sed 's/[()]//g' > /tmp/kernel1
+	rt=`sed -n "$DEF"p /tmp/kernel1`
+	#rt=`rpm -qa kernel\* --queryformat="%{VERSION}-%{RELEASE}\n" | sort -f | uniq`
+        assert "/bin/uname -r" $rt
+	#else
+	#new_test "## Verify kernel release ... "
+	#DEF=`cat /boot/grub/grub.conf | awk -F= '/default/ {print $2}'`
+	#let DEF++
+	#cat /boot/grub/grub.conf | awk '/title/ {print $NF}' | sed 's/[()]//g ; s/xen$//g' > /tmp/kernel1
+	#rt=`sed -n "$DEF"p /tmp/kernel1`
+	#rt=`rpm -qa kernel\* --queryformat="%{VERSION}-%{RELEASE}.%{ARCH}\n" | grep -v noarch | uniq`
+        #assert "/bin/uname -r" $rt
+	#fi
 	new_test "## Verify operating system ... "
 	assert "/bin/uname -o" GNU/Linux
 
@@ -495,7 +536,11 @@ function open_bugzilla()
 {
 	echo "Installing packages needed to open a bug report. The packages will be removed at the end of the test"
 	echo " "
-	rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-3.noarch.rpm
+	if [ $RHEL == 5 ] ; then
+	rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm
+	else
+	rpm -Uvh http://download.fedora.redhat.com/pub/epel/beta/6/i386/epel-release-6-4.noarch.rpm
+	fi
 	yum -y install python-bugzilla
 	new_test "## Open a bugzilla"
 	echo ""
@@ -521,7 +566,7 @@ function remove_bugzilla_rpms()
 	echo ""
 	echo "Removing epel-release and python-bugzilla"
 	rpm -e epel-release python-bugzilla
-        rpm -e gpg-pubkey-217521f6-45e8a532	
+        rpm -e gpg-pubkey-0608b895-4bd22942 gpg-pubkey-217521f6-45e8a532 	
     echo ""
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	echo "Please attach the sosreport bz2 in file /tmp to https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
