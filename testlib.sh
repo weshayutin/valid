@@ -254,20 +254,26 @@ function test_package_set()
 
 function test_verify_rpms()
 {
+    if [ $RHEL == 5 ] ; then
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
-	cat $file >> $LOGFILE
-	cat rpmVerifyTable >> $LOGFILE
+	    cat $file >> $LOGFILE
+	    cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
-        if [ $RHEL == 5 ] ; then
         new_test "## Verify Version 1 ... " 
-	assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
-       new_test "## Verify Version 2 ... "
+	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
+        new_test "## Verify Version 2 ... "
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.5" # to-do, pass this in
 	else
+	file=/tmp/rpmqaV.txt
+        new_test "## Verify RPMs ... " 
+        /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
+	    cat $file >> $LOGFILE
+	    cat rpmVerifyTable >> $LOGFILE
+        assert "cat ${file} | wc -l" "4"
         new_test "## Verify Version 1 ... " 
-	assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 6.0 (Santiago)" # to-do, pass this in
+	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 6.0 (Santiago)" # to-do, pass this in
         new_test "## Verify Version 2 ... " 
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release-server | cut -d. -f1,2" "6.0" # to-do, pass this in
 	fi
@@ -328,8 +334,8 @@ function test_system_id()
 
 function test_cloud-firstboot()
 {
-        new_test "## Verify rh-cloud-firstboot is off ... "
-	assert "chkconfig --list | grep rh-cloud | grep -v on"
+        new_test "## Verify rh-cloud-firstboot is on ... "
+	assert "chkconfig --list | grep rh-cloud | grep on | wc -l" "1"
 }
 
 function test_nameserver()
@@ -377,10 +383,18 @@ function test_shells()
 
 function test_repos()
 {
+    
+	if [ $RHEL == 5 ]; then
 	new_test "## test repo files ... "
 	assert "ls /etc/yum.repos.d/ | wc -l " 5
 	assert "ls /etc/yum.repos.d/redhat* | wc -l" 4
 	assert "ls /etc/yum.repos.d/rhel* | wc -l" 1
+    else
+	new_test "## test repo files ... "
+	assert "ls /etc/yum.repos.d/ | wc -l " 4
+	assert "ls /etc/yum.repos.d/redhat* | wc -l" 4
+	assert "ls /etc/yum.repos.d/rhel* | wc -l" 0
+    fi
 }
 
 function test_yum_plugin()
@@ -397,9 +411,15 @@ function test_gpg_keys()
 	new_test "## Verify GPG Keys ... "
 	assert "rpm -qa gpg-pubkey* | wc -l " 2
 
+	if [ $RHEL == 5 ]; then
 	new_test "## Verify GPG RPMS ... "
 	assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-37017186-45761324"
 	assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
+    else
+	new_test "## Verify GPG RPMS ... "
+	assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-fd431d51-4ae0493b"
+	assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
+    fi 
 }
 
 function test_IPv6()
@@ -443,23 +463,30 @@ function test_iptables()
         new_test "## Verify iptables ... "
         rc_outFile "/etc/init.d/iptables status | grep REJECT"
         assert "/etc/init.d/iptables status | grep :22 | grep ACCEPT | wc -l " "1"
-        assert "/etc/init.d/iptables status | grep "dpt:631" | grep ACCEPT | wc -l " "2"
+#        assert "/etc/init.d/iptables status | grep "dpt:631" | grep ACCEPT | wc -l " "2"
 #       assert "/etc/init.d/iptables status | grep "icmp type" | grep ACCEPT | wc -l" "1"
-        assert "/etc/init.d/iptables status | grep "dpt:5353" | grep ACCEPT | wc -l" "1"
-        assert "/etc/init.d/iptables status | grep "RELATED,ESTABLISHED" | grep ACCEPT | wc -l" "1"
-        assert "/etc/init.d/iptables status | grep -e esp -e ah | grep ACCEPT | wc -l" "2"
+#        assert "/etc/init.d/iptables status | grep "dpt:5353" | grep ACCEPT | wc -l" "1"
+#        assert "/etc/init.d/iptables status | grep "ESTABLISHED,RELATED" | grep ACCEPT | wc -l" "1"
+#        assert "/etc/init.d/iptables status | grep -e esp -e ah | grep ACCEPT | wc -l" "2"
 #       assert "/etc/init.d/iptables status | grep :80 | grep ACCEPT | wc -l " "1"
 #       assert "/etc/init.d/iptables status | grep :443 | grep ACCEPT | wc -l " "1"
-        assert "/etc/init.d/iptables status | grep REJECT | grep all | grep 0.0.0.0/0 | grep icmp-host-prohibited |  wc -l" "1"
-	fi
+#        assert "/etc/init.d/iptables status | grep REJECT | grep all | grep 0.0.0.0/0 | grep icmp-host-prohibited |  wc -l" "1"
+	  fi
 }
 
 function test_chkconfig()
 {
-        new_test "## Verify  chkconfig ... "
+ 
+	if [ $RHEL == 5 ]; then
+    new_test "## Verify  chkconfig ... "
 	assert "chkconfig --list | grep crond | cut -f 5" "3:on"
 	assert "chkconfig --list | grep  iptables | cut -f 5" "3:on"
 	assert "chkconfig --list | grep yum-updatesd | cut -f 5" "3:on"
+    else
+    new_test "## Verify  chkconfig ... "
+	assert "chkconfig --list | grep crond | cut -f 5" "3:on"
+	assert "chkconfig --list | grep  iptables | cut -f 5" "3:on"
+    fi
 }
 
 
