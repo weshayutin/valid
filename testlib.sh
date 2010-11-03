@@ -565,7 +565,7 @@ function open_bugzilla()
 	if [ $RHEL == 5 ] ; then
 	rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm
 	else
-	rpm -Uvh http://download.fedora.redhat.com/pub/epel/beta/6/i386/epel-release-6-4.noarch.rpm
+	rpm -Uvh http://download.fedora.redhat.com/pub/epel/beta/6/i386/epel-release-6-5.noarch.rpm
 	fi
 	yum -y install python-bugzilla
 	new_test "## Open a bugzilla"
