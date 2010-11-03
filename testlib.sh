@@ -248,8 +248,7 @@ function test_package_set()
         comm -23 packages_6 ${file} > /tmp/package_diff
         fi
 	cat /tmp/package_diff >>$LOGFILE
-	assert "cat /tmp/package_diff | wc -l" 1
-	echo "Known sorting error on package=fonts-KOI8-R" >>$LOGFILE
+	assert "cat /tmp/package_diff | wc -l" 0
 }
 
 function test_verify_rpms()
@@ -286,7 +285,7 @@ function test_verify_rpms()
          echo -n $x >>$file
          rpm -qi $x | grep Packager >>$file
         done
-        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 0
+        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 1
         cat $file | grep -v 'Red Hat, Inc.' >>$LOGFILE	
 }
 
