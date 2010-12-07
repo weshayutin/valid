@@ -249,7 +249,6 @@ function test_package_set()
         fi
 	cat /tmp/package_diff >>$LOGFILE
 	assert "cat /tmp/package_diff | wc -l" 0
-#	echo "Known sorting error on package=fonts-KOI8-R" >>$LOGFILE
 }
 
 function test_verify_rpms()
@@ -286,7 +285,7 @@ function test_verify_rpms()
          echo -n $x >>$file
          rpm -qi $x | grep Packager >>$file
         done
-        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 0
+        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 1
         cat $file | grep -v 'Red Hat, Inc.' >>$LOGFILE	
 }
 
@@ -566,7 +565,7 @@ function open_bugzilla()
 	if [ $RHEL == 5 ] ; then
 	rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm
 	else
-	rpm -Uvh http://download.fedora.redhat.com/pub/epel/beta/6/i386/epel-release-6-4.noarch.rpm
+	rpm -Uvh http://download.fedora.redhat.com/pub/epel/beta/6/i386/epel-release-6-5.noarch.rpm
 	fi
 	yum -y install python-bugzilla
 	new_test "## Open a bugzilla"
