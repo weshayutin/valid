@@ -285,7 +285,7 @@ function test_verify_rpms()
          echo -n $x >>$file
          rpm -qi $x | grep Packager >>$file
         done
-        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 1
+        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 0
         cat $file | grep -v 'Red Hat, Inc.' >>$LOGFILE	
 }
 
@@ -334,7 +334,7 @@ function test_system_id()
 function test_cloud-firstboot()
 {
         new_test "## Verify rh-cloud-firstboot is on ... "
-	assert "chkconfig --list | grep rh-cloud | grep on | wc -l" "1"
+	assert "chkconfig --list | grep rh-cloud | grep off | wc -l" "1"
 }
 
 function test_nameserver()
