@@ -73,7 +73,7 @@ test_install_package
 test_yum_update
 test_bash_history
 test_system_id
-test_cloud-firstboot
+#test_cloud-firstboot
 test_nameserver
 test_group
 test_passwd

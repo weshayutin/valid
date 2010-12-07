@@ -248,8 +248,8 @@ function test_package_set()
         comm -23 packages_6 ${file} > /tmp/package_diff
         fi
 	cat /tmp/package_diff >>$LOGFILE
-	assert "cat /tmp/package_diff | wc -l" 1
-	echo "Known sorting error on package=fonts-KOI8-R" >>$LOGFILE
+	assert "cat /tmp/package_diff | wc -l" 0
+#	echo "Known sorting error on package=fonts-KOI8-R" >>$LOGFILE
 }
 
 function test_verify_rpms()
@@ -262,9 +262,9 @@ function test_verify_rpms()
 	    cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
         new_test "## Verify Version 1 ... " 
-	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.5 (Tikanga)" # to-do, pass this in
+	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.6 Beta (Tikanga)" # to-do, pass this in
         new_test "## Verify Version 2 ... "
-        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.5" # to-do, pass this in
+        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.6" # to-do, pass this in
 	else
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
