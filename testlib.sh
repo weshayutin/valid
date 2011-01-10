@@ -261,7 +261,7 @@ function test_verify_rpms()
 	    cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
         new_test "## Verify Version 1 ... " 
-	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.6 Beta (Tikanga)" # to-do, pass this in
+	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.6 (Tikanga)" # to-do, pass this in
         new_test "## Verify Version 2 ... "
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.6" # to-do, pass this in
 	else
@@ -385,9 +385,9 @@ function test_repos()
     
 	if [ $RHEL == 5 ]; then
 	new_test "## test repo files ... "
-	assert "ls /etc/yum.repos.d/ | wc -l " 5
+	assert "ls /etc/yum.repos.d/ | wc -l " 6
 	assert "ls /etc/yum.repos.d/redhat* | wc -l" 4
-	assert "ls /etc/yum.repos.d/rhel* | wc -l" 1
+	assert "ls /etc/yum.repos.d/rhel* | wc -l" 2
     else
 	new_test "## test repo files ... "
 	assert "ls /etc/yum.repos.d/ | wc -l " 4
@@ -495,7 +495,7 @@ function test_syslog()
 	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
 	if [ $RHEL == 5 ] ; then
 	new_test "## Verify rsyslog config ... "
-	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
+	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "15936b6fe4e8fadcea87b54de495f975"
 	else
 	new_test "## Verify rsyslog config ... "
 	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "dd356958ca9c4e779f7fac13dde3c1b5"
