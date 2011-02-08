@@ -17,8 +17,8 @@
 
 FAILURES=0
 
-if [ -z $1 ];then
- echo "ERROR:"
+if [ $# -lt 2 ];then
+ echo "ERROR: The number of arguments should be two"
  echo "please use --help"
  exit 1
 fi
@@ -30,7 +30,19 @@ for i in $*
       --imageID=*)
          IMAGEID="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
          ;;
-      *)
+      --RHEL=*)
+         RHELV="`echo $i | sed 's/[-A-Z]*=//'`"
+         if [ "$RHELV" == 5 ] || [ "$RHELV" == 6 ]; then
+           :
+         else
+           echo "The OS version is incorrect; Please specify the correct version !!!"
+           echo ""
+           echo "Please specify the correct rhel version e.g: --RHEL=5 or --RHEL=6"
+           exit 1
+         fi
+         #echo the version is $RHELV
+         ;;
+        *)
          # unknown option 
            echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
            echo " This script will run through some basic sanity tests for a Red Hat Enterprise Linux image "
@@ -40,10 +52,12 @@ for i in $*
            echo ""
            echo "Available options are:"
            echo "--imageID   Please provide a unique id for the image"
+           echo "--RHEL  Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
            exit 1
            ;;
  esac
 done
+
 source $PWD/testlib.sh
 
 echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
@@ -54,6 +68,8 @@ echo ""
 echo "***************** DETAILED RESULTS LOGGED TO validate.log  ********************************"
 echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
 echo "" 
+echo ""
+test_rhel_version
 echo ""
 userInput_CloudProvider
 userInput_Filesystem

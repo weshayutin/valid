@@ -119,6 +119,16 @@ function assert()
         fi
 }
 
+function test_rhel_version()
+{
+        if [ $RHELV == $RHEL ]; then
+          new_test "The selected image has the version RHEL $RHELV"
+        else
+          echo "Version Mismatched !!!!, The input version RHEL$RHELV should be similar to the selected Ami's version RHEL$RHEL" 
+          exit
+        fi
+}
+
 function userInput_CloudProvider()
 {
 	echo ""
