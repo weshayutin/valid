@@ -17,8 +17,8 @@
 
 FAILURES=0
 
-if [ $# -lt 2 ];then
- echo "ERROR: The number of arguments should be two"
+if [ $# -lt 3 ];then
+ echo "ERROR: The number of command-line arguments should be three"
  echo "please use --help"
  exit 1
 fi
@@ -42,6 +42,17 @@ for i in $*
          fi
          #echo the version is $RHELV
          ;;
+      --full-yum-suite=*)
+          yum_test="`echo $i | sed 's/[-a-zA-Z]*=//'`"
+          if [ "$yum_test" == "yes" ] || [ "$yum_test" == "no" ]; then
+            :
+          else
+            echo "Please pass the correct values to the --full-yum-suite input flag"
+            echo "--full-yum-suite=yes to invoke more rigorous yum tests"
+            echo "--full-yum-suite=no to invoke simple yum install test"        
+            exit 1
+          fi
+          ;;
         *)
          # unknown option 
            echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
@@ -53,6 +64,7 @@ for i in $*
            echo "Available options are:"
            echo "--imageID   Please provide a unique id for the image"
            echo "--RHEL  Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
+           echo "--full-yum-suite Please input the value either "yes" OR "no""          
            exit 1
            ;;
  esac
@@ -85,8 +97,9 @@ test_verify_rpms
 test_gpg_keys
 test_repos
 test_yum_plugin
-test_install_package
-test_yum_update
+#test_install_package
+#test_yum_update
+test_yum_full_test
 test_bash_history
 test_system_id
 test_cloud-firstboot

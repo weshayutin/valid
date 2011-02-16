@@ -299,7 +299,40 @@ function test_verify_rpms()
         cat $file | grep -v 'Red Hat, Inc.' >>$LOGFILE	
 }
 
-function test_install_package()
+function test_yum_full_test()
+{
+  if [ $yum_test == 'yes' ] ; then
+        echo "Invoking more rigorous yum tests"
+        new_test "## List the configured repositories..."
+        assert "/usr/bin/yum repolist"
+
+        new_test "## Search zsh..."
+        assert "/usr/bin/yum search zsh"
+
+        new_test "## install zsh ... "
+        rc "/usr/bin/yum -y install zsh"
+        assert "/bin/rpm -q --queryformat '%{NAME}\n' zsh" zsh
+
+        new_test "## List available groups.."
+        assert "/usr/bin/yum grouplist"
+
+        new_test "## Install Development tools group..." 
+        assert "/usr/bin/yum -y groupinstall 'Development tools'"
+
+        new_test "## Verify yum update ... "
+        assert "/usr/bin/yum -y update"
+
+        new_test "## Verify package removal... "
+        rc "/bin/rpm -e zsh"
+        assert "/bin/rpm -q zsh" "package zsh is not installed"
+
+  else
+        echo "Invoking yum install and update test"
+        test_yum_general_test
+  fi
+}
+
+function test_yum_general_test()
 {
         new_test "## install zsh ... "
         rc "/usr/bin/yum -y install zsh"
@@ -309,10 +342,6 @@ function test_install_package()
         rc "/bin/rpm -e zsh"
         assert "/bin/rpm -q zsh" "package zsh is not installed"
 
-}
-
-function test_yum_update()
-{
         new_test "## Verify yum update ... " 
 	assert "/usr/bin/yum -y update"
 }
