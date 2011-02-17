@@ -302,7 +302,7 @@ function test_verify_rpms()
 function test_yum_full_test()
 {
   if [ $yum_test == 'yes' ] ; then
-        echo "Invoking more rigorous yum tests"
+        #echo "Invoking more rigorous yum tests"
         new_test "## List the configured repositories..."
         assert "/usr/bin/yum repolist"
 

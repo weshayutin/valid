@@ -64,7 +64,7 @@ for i in $*
            echo "Available options are:"
            echo "--imageID   Please provide a unique id for the image"
            echo "--RHEL  Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
-           echo "--full-yum-suite Please input the value either "yes" OR "no""          
+           echo "--full-yum-suite Please input the value either in "yes" OR "no""          
            exit 1
            ;;
  esac
