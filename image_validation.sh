@@ -17,11 +17,25 @@
 
 FAILURES=0
 
-if [ $# -lt 3 ];then
- echo "ERROR: The number of command-line arguments should be three"
- echo "please use --help"
- exit 1
-fi
+function usage()
+{
+           echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
+	   echo "Please use all options"
+	   echo ""
+           echo " This script will run through some basic sanity tests for a Red Hat Enterprise Linux image "
+           echo " A valid Red Hat bugzilla username and password will be required at the end of the script "
+           echo " http://bugzilla.redhat.com/ "
+           echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
+           echo ""
+           echo "Available options are:"
+           echo "--imageID=          :: Please provide a unique id for the image"
+           echo "--RHEL=             :: Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
+           echo "--full-yum-suite=   :: Please input the value  "yes" OR "no""          
+	   echo "--skip-questions=   :: Please input the value  "yes" or "no""
+	   echo "--bugzilla-username :: Please specify your bugzilla username"
+	   echo "--bugzilla-password :: Please specify your bugzilla password"
+}
+
 
 #cli
 for i in $*
@@ -35,9 +49,7 @@ for i in $*
          if [ "$RHELV" == 5 ] || [ "$RHELV" == 6 ]; then
            :
          else
-           echo "The OS version is incorrect; Please specify the correct version !!!"
-           echo ""
-           echo "Please specify the correct rhel version e.g: --RHEL=5 or --RHEL=6"
+	   usage
            exit 1
          fi
          #echo the version is $RHELV
@@ -47,28 +59,35 @@ for i in $*
           if [ "$yum_test" == "yes" ] || [ "$yum_test" == "no" ]; then
             :
           else
-            echo "Please pass the correct values to the --full-yum-suite input flag"
-            echo "--full-yum-suite=yes to invoke more rigorous yum tests"
-            echo "--full-yum-suite=no to invoke simple yum install test"        
+	    usage
             exit 1
           fi
           ;;
+      --skip-questions=*)
+	  QUESTIONS="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
+      --bugzilla-username=*)
+	  BUG_USERNAME="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
+      --bugzilla-password=*)
+	  BUG_PASSWORD="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
         *)
          # unknown option 
-           echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
-           echo " This script will run through some basic sanity tests for a Red Hat Enterprise Linux image "
-           echo " A valid Red Hat bugzilla username and password will be required at the end of the script "
-           echo " http://bugzilla.redhat.com/ "
-           echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
-           echo ""
-           echo "Available options are:"
-           echo "--imageID   Please provide a unique id for the image"
-           echo "--RHEL  Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
-           echo "--full-yum-suite Please input the value either in "yes" OR "no""          
+	   usage
            exit 1
            ;;
  esac
 done
+
+
+if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] || [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]]; then
+ usage
+ exit 1
+fi
+
+
+
 
 source $PWD/testlib.sh
 
@@ -83,10 +102,12 @@ echo ""
 echo ""
 test_rhel_version
 echo ""
-userInput_CloudProvider
-userInput_Filesystem
-userInput_Errata_Notification
-userInput_Availability
+if [ $QUESTIONS == "no" ];then
+ userInput_CloudProvider
+ userInput_Filesystem
+ userInput_Errata_Notification
+ userInput_Availability
+fi
 echo "##### START TESTS #####"
 echo ""
 test_disk_format
@@ -97,9 +118,13 @@ test_verify_rpms
 test_gpg_keys
 test_repos
 test_yum_plugin
-#test_install_package
-#test_yum_update
-test_yum_full_test
+##test_install_package
+##test_yum_update
+if [ $yum_test == "yes" ];then
+ test_yum_full_test
+else
+ test_yum_general_test
+fi
 test_bash_history
 test_system_id
 test_cloud-firstboot

@@ -301,35 +301,30 @@ function test_verify_rpms()
 
 function test_yum_full_test()
 {
-  if [ $yum_test == 'yes' ] ; then
         #echo "Invoking more rigorous yum tests"
         new_test "## List the configured repositories..."
-        assert "/usr/bin/yum repolist"
+        assert "/usr/bin/yum repolist" 
 
         new_test "## Search zsh..."
-        assert "/usr/bin/yum search zsh"
+        assert "/usr/bin/yum search zsh" 
 
         new_test "## install zsh ... "
         rc "/usr/bin/yum -y install zsh"
         assert "/bin/rpm -q --queryformat '%{NAME}\n' zsh" zsh
 
         new_test "## List available groups.."
-        assert "/usr/bin/yum grouplist"
+        assert "/usr/bin/yum grouplist" 
 
         new_test "## Install Development tools group..." 
         assert "/usr/bin/yum -y groupinstall 'Development tools'"
 
         new_test "## Verify yum update ... "
-        assert "/usr/bin/yum -y update"
+        assert "/usr/bin/yum -y update"  
 
         new_test "## Verify package removal... "
         rc "/bin/rpm -e zsh"
         assert "/bin/rpm -q zsh" "package zsh is not installed"
 
-  else
-        echo "Invoking yum install and update test"
-        test_yum_general_test
-  fi
 }
 
 function test_yum_general_test()
@@ -343,7 +338,7 @@ function test_yum_general_test()
         assert "/bin/rpm -q zsh" "package zsh is not installed"
 
         new_test "## Verify yum update ... " 
-	assert "/usr/bin/yum -y update"
+	assert "/usr/bin/yum -y update" 
 }
 
 function test_bash_history()
@@ -609,9 +604,9 @@ function open_bugzilla()
 	yum -y install python-bugzilla
 	new_test "## Open a bugzilla"
 	echo ""
-	echo "Please enter your bugzilla username and password"
+	echo "Logging into bugilla"
 	echo ""
-	bugzilla login
+	bugzilla --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
 	BUGZILLA=`bugzilla new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
 	echo ""
 	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
