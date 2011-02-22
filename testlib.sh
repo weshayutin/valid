@@ -594,28 +594,20 @@ function sos_report()
 
 function open_bugzilla()
 {
-	echo "Installing packages needed to open a bug report. The packages will be removed at the end of the test"
-	echo " "
-	if [ $RHEL == 5 ] ; then
-	rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm
-	else
-	rpm -Uvh http://download.fedora.redhat.com/pub/epel/beta/6/i386/epel-release-6-5.noarch.rpm
-	fi
-	yum -y install python-bugzilla
 	new_test "## Open a bugzilla"
 	echo ""
 	echo "Logging into bugilla"
 	echo ""
-	bugzilla --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
-	BUGZILLA=`bugzilla new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
+	$DIFFDIR/bugzilla --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
+	BUGZILLA=`$DIFFDIR/bugzilla new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
 	echo ""
 	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 	echo ""
 	echo "Adding log file contents to bugzilla"
 	BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
         BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
-        bugzilla modify $BUGZILLA -l "${BUG_COMMENTS01}"
-        bugzilla modify $BUGZILLA -l "${BUG_COMMENTS02}"
+        $DIFFDIR/bugzilla modify $BUGZILLA -l "${BUG_COMMENTS01}"
+        $DIFFDIR/bugzilla modify $BUGZILLA -l "${BUG_COMMENTS02}"
 
 	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 }
