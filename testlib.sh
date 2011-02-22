@@ -598,16 +598,16 @@ function open_bugzilla()
 	echo ""
 	echo "Logging into bugilla"
 	echo ""
-	$DIFFDIR/bin/bugzilla --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
-	BUGZILLA=`$DIFFDIR/bin/bugzilla new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
+	$DIFFDIR/bugzilla-command --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
+	BUGZILLA=`$DIFFDIR/bugzilla-command new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
 	echo ""
 	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 	echo ""
 	echo "Adding log file contents to bugzilla"
 	BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
         BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
-        $DIFFDIR/bin/bugzilla modify $BUGZILLA -l "${BUG_COMMENTS01}"
-        $DIFFDIR/bin/bugzilla modify $BUGZILLA -l "${BUG_COMMENTS02}"
+        $DIFFDIR/bugzilla-command modify $BUGZILLA -l "${BUG_COMMENTS01}"
+        $DIFFDIR/bugzilla-command modify $BUGZILLA -l "${BUG_COMMENTS02}"
 
 	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 }
