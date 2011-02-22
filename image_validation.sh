@@ -148,7 +148,7 @@ test_uname
 show_failures
 open_bugzilla
 sos_report
-remove_bugzilla_rpms
+#remove_bugzilla_rpms
 im_exit
 ##################################
 
