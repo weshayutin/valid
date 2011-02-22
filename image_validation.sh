@@ -32,7 +32,7 @@ function usage()
            echo "--RHEL=             :: Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
            echo "--full-yum-suite=   :: Please input the value  "yes" OR "no""          
 	   echo "--skip-questions=   :: Please input the value  "yes" or "no""
-	   echo "--bugzilla-username :: Please specify your bugzilla username"
+	   echo "--bugzilla-username :: Please specify your bugzilla username@email.com"
 	   echo "--bugzilla-password :: Please specify your bugzilla password"
 }
 
