@@ -594,27 +594,27 @@ function sos_report()
 
 function open_bugzilla()
 {
- 	BUGZILLA-COMMAND=$DIFFDIR/bugzilla-command
+ 	BUGZILLACOMMAND=$DIFFDIR/bugzilla-command
 	new_test "## Open a bugzilla"
 	echo ""
 	echo "Logging into bugilla"
 	echo ""
-	$BUGZILLA-COMMAND --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
-	BUGZILLA=`$BUGZILLA-COMMAND new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
+	$BUGZILLACOMMAND --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
+	BUGZILLA=`$BUGZILLACOMMAND new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
 	echo ""
 	echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 	echo ""
 	echo "Adding log file contents to bugzilla"
 	BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
         BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
-        $BUGZILLA-COMMAND modify $BUGZILLA -l "${BUG_COMMENTS01}"
-        $BUGZILLA-COMMAND modify $BUGZILLA -l "${BUG_COMMENTS02}"
+        $BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS01}"
+        $BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS02}"
 
 	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
-	if [$FAILURES == 0 ];then
+	if [ $FAILURES == 0 ];then
           echo "MOVING BUG TO VERIFIED: test has $FAILURES failures"
-	  $BUGZILLA-COMMAND modify --status="VERIFIED" $BUGZILLA	
+	  $BUGZILLACOMMAND modify --status="VERIFIED" $BUGZILLA	
 	fi
 }
 
