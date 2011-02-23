@@ -116,7 +116,7 @@ test_selinux
 test_package_set
 test_verify_rpms
 test_gpg_keys
-test_repos
+#test_repos #remarking this out for now.. until additional repo's land. the yum tests should be sufficient
 test_yum_plugin
 ##test_install_package
 ##test_yum_update
