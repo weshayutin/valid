@@ -368,7 +368,15 @@ function test_system_id()
 function test_cloud-firstboot()
 {
         new_test "## Verify rh-cloud-firstboot is on ... "
-	assert "chkconfig --list | grep rh-cloud | grep off | wc -l" "1"
+	assert "chkconfig --list | grep rh-cloud | grep 3:off | wc -l" "1"
+        if [  -f /etc/sysconfig/rh-cloud-firstboot ]; then
+	 echo "/etc/sysconfig/rh-cloud-firstboot FOUND" >> $LOGFILE
+         assert "echo true"
+        else
+	 echo "/etc/sysconfig/rh-cloud-firstboot NOT FOUND" >> $LOGFILE
+	 assert "/bin/asdf"
+	fi
+	assert "cat /etc/sysconfig/rh-cloud-firstboot" "RUN_FIRSTBOOT=NO"
 }
 
 function test_nameserver()
