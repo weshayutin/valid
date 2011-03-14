@@ -30,6 +30,7 @@ function usage()
            echo "Available options are:"
            echo "--imageID=          :: Please provide a unique id for the image"
            echo "--RHEL=             :: Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
+           echo "--RHEL_UPDATE=      :: RHEL update version for 6.1, specify 1, RHEL 5.7, specify 7 eg: --RHEL_UPDATE=1 "
            echo "--full-yum-suite=   :: Please input the value  "yes" OR "no""          
 	   echo "--skip-questions=   :: Please input the value  "yes" or "no""
 	   echo "--bugzilla-username :: Please specify your bugzilla username@email.com"
@@ -54,6 +55,10 @@ for i in $*
          fi
          #echo the version is $RHELV
          ;;
+      --RHEL_UPDATE=*)
+         RHEL_UPDATE="`echo $i | sed 's/[-A-Z]*=//'`"
+         fi
+	 ;;
       --full-yum-suite=*)
           yum_test="`echo $i | sed 's/[-a-zA-Z]*=//'`"
           if [ "$yum_test" == "yes" ] || [ "$yum_test" == "no" ]; then
@@ -81,7 +86,7 @@ for i in $*
 done
 
 
-if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] || [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]]; then
+if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] || [[ -z $RHEL_UPDATE ]] || [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]]; then
  usage
  exit 1
 fi

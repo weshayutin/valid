@@ -54,6 +54,7 @@ rm -Rf tmp1_partitions tmp2_partitions
 ### End:  Create a list of partitions
 
 RHEL=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $1}'`
+RHELU=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $2}'`
 
 echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
 
@@ -121,10 +122,12 @@ function assert()
 
 function test_rhel_version()
 {
-        if [ $RHELV == $RHEL ]; then
+	SPECIFIED_FULL_RHEL_VERSION=$RHELV.$RHEL_UPDATE
+	FOUND_FULL_RHEL_VERSION=$RHEL.$RHELU
+        if [ $SPECIFIED_FULL_RHEL_VERSION == $FOUND_FULL_RHEL_VERSION ]; then
           new_test "The selected image has the version RHEL $RHELV"
         else
-          echo "Version Mismatched !!!!, The input version RHEL$RHELV should be similar to the selected Ami's version RHEL$RHEL" 
+          echo "Version Mismatched !!!!, The input version RHEL$RHELV.$RHEL_UPDATE should be similar to the selected Ami's version RHEL$RHEL.$RHELU" 
           exit
         fi
 }
