@@ -55,6 +55,7 @@ rm -Rf tmp1_partitions tmp2_partitions
 
 RHEL=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $1}'`
 RHELU=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $2}'`
+RHEL_FOUND=$RHEL.$RHELU
 
 echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
 
@@ -122,12 +123,13 @@ function assert()
 
 function test_rhel_version()
 {
-	SPECIFIED_FULL_RHEL_VERSION=$RHELV.$RHEL_UPDATE
-	FOUND_FULL_RHEL_VERSION=$RHEL.$RHELU
-        if [ $SPECIFIED_FULL_RHEL_VERSION == $FOUND_FULL_RHEL_VERSION ]; then
+	
+        echo  hostname >> $LOGFILE
+	echo  `cat /etc/redhat-release`
+        if [ $RHELV == $RHEL_FOUND ]; then
           new_test "The selected image has the version RHEL $RHELV"
         else
-          echo "Version Mismatched !!!!, The input version RHEL$RHELV.$RHEL_UPDATE should be similar to the selected Ami's version RHEL$RHEL.$RHELU" 
+          echo "Version Mismatched !!!!, The input version RHEL$RHELV should be similar to the selected Ami's version RHEL$RHEL_FOUND" 
           exit
         fi
 }
@@ -254,29 +256,34 @@ function test_package_set()
         #/bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp  
         cat ${file}.tmp  |  sort -f > ${file}
 	if [ $RHEL == 5 ] ; then
-        rc "comm -23 packages_5 ${file}"
-        comm -23 packages_5 ${file} > /tmp/package_diff
+         rc "comm -23 packages_5 ${file}"
+         comm -23 packages_5 ${file} > /tmp/package_diff
+	elif [ $RHEL_FOUND == "6.0" ]; then
+         rc "comm -23 packages_6 ${file}"
+         comm -23 packages_6 ${file} > /tmp/package_diff
+	elif [ $RHEL_FOUND == "6.1" ]; then	
+	 rc "comm -23 packages_61 ${file}"
+         comm -23 packages_61 ${file} > /tmp/package_diff
 	else
-	rc "comm -23 packages_6 ${file}"
-        comm -23 packages_6 ${file} > /tmp/package_diff
+         echo "VERSION NOT FOUND"
         fi
+
 	cat /tmp/package_diff >>$LOGFILE
 	assert "cat /tmp/package_diff | wc -l" 0
 }
 
 function test_verify_rpms()
 {
-    if [ $RHEL == 5 ] ; then
+    THIS_RHEL=`echo $RHELV | cut -d . -f 1`
+    if [ $THIS_RHEL == 5 ] ; then
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
 	    cat $file >> $LOGFILE
 	    cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
-        new_test "## Verify Version 1 ... " 
-	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 5.6 (Tikanga)" # to-do, pass this in
         new_test "## Verify Version 2 ... "
-        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" "5.6" # to-do, pass this in
+        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" $RHELV # to-do, pass this in
 	else
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
@@ -284,21 +291,19 @@ function test_verify_rpms()
 	    cat $file >> $LOGFILE
 	    cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "4"
-        new_test "## Verify Version 1 ... " 
-	    assert "/bin/cat /etc/redhat-release" "Red Hat Enterprise Linux Server release 6.0 (Santiago)" # to-do, pass this in
         new_test "## Verify Version 2 ... " 
-        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release-server | cut -d. -f1,2" "6.0" # to-do, pass this in
+        assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release-server | cut -d. -f1,2" $RHELV # to-do, pass this in
 	fi
         
 	new_test "## Verify packager ... "
         file=/tmp/Packager
-        #`cat /dev/null > $file`
+        `cat /dev/null > $file`
         #echo "for x in $file ;do echo -n $x >> $file; rpm -qi $x | grep Packager >> $file;done" >>$LOGFILE
         for x in $(cat /tmp/rpmqa);do
          echo -n $x >>$file
          rpm -qi $x | grep Packager >>$file
         done
-        assert "cat $file | grep -v 'Red Hat, Inc.' | wc -l" 0
+        assert "cat $file | grep -v 'Red Hat, Inc.' |  grep -v crash-trace-commandPackager| wc -l" 0
         cat $file | grep -v 'Red Hat, Inc.' >>$LOGFILE	
 }
 

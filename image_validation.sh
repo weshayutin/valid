@@ -29,8 +29,7 @@ function usage()
            echo ""
            echo "Available options are:"
            echo "--imageID=          :: Please provide a unique id for the image"
-           echo "--RHEL=             :: Please specify the correct rhel version eg: --RHEL=5 or --RHEL=6"
-           echo "--RHEL_UPDATE=      :: RHEL update version for 6.1, specify 1, RHEL 5.7, specify 7 eg: --RHEL_UPDATE=1 "
+           echo "--RHEL=             :: Please specify the correct FULL rhel version eg: --RHEL=5.7 or --RHEL=6.1"
            echo "--full-yum-suite=   :: Please input the value  "yes" OR "no""          
 	   echo "--skip-questions=   :: Please input the value  "yes" or "no""
 	   echo "--bugzilla-username :: Please specify your bugzilla username@email.com"
@@ -47,18 +46,7 @@ for i in $*
          ;;
       --RHEL=*)
          RHELV="`echo $i | sed 's/[-A-Z]*=//'`"
-         if [ "$RHELV" == 5 ] || [ "$RHELV" == 6 ]; then
-           :
-         else
-	   usage
-           exit 1
-         fi
-         #echo the version is $RHELV
          ;;
-      --RHEL_UPDATE=*)
-         RHEL_UPDATE="`echo $i | sed 's/[-A-Z]*=//'`"
-         fi
-	 ;;
       --full-yum-suite=*)
           yum_test="`echo $i | sed 's/[-a-zA-Z]*=//'`"
           if [ "$yum_test" == "yes" ] || [ "$yum_test" == "no" ]; then
@@ -86,7 +74,7 @@ for i in $*
 done
 
 
-if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] || [[ -z $RHEL_UPDATE ]] || [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]]; then
+if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]]; then
  usage
  exit 1
 fi
@@ -123,8 +111,6 @@ test_verify_rpms
 test_gpg_keys
 #test_repos #remarking this out for now.. until additional repo's land. the yum tests should be sufficient
 test_yum_plugin
-##test_install_package
-##test_yum_update
 if [ $yum_test == "yes" ];then
  test_yum_full_test
 else
@@ -146,14 +132,12 @@ test_chkconfig
 test_syslog
 test_auditd
 test_uname
-#test_swap_file
 
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
 open_bugzilla
 sos_report
-#remove_bugzilla_rpms
 im_exit
 ##################################
 
