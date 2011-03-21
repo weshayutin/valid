@@ -515,7 +515,7 @@ report-plugin-ftp
 report-plugin-localsave
 report-plugin-scp
 rfkill
-rh-amazon-rhui-client
+rh-amazon-rhui-client-beta
 rhino
 rhn-check
 rhn-client-tools

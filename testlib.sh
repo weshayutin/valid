@@ -458,16 +458,27 @@ function test_gpg_keys()
 	assert "grep '^gpgcheck=1' /etc/yum.repos.d/redhat-*.repo | cut -d\= -f2 | sort -f | uniq" 1
 
 	new_test "## Verify GPG Keys ... "
-	assert "rpm -qa gpg-pubkey* | wc -l " 2
+	if [ $RHEL == 5 ]; then	
+	 assert "rpm -qa gpg-pubkey* | wc -l " 2
+	elif [ $RHEL_FOUND == "6.1" ]; then
+	 assert "rpm -qa gpg-pubkey* | wc -l " 4
+	else
+	 assert "rpm -qa gpg-pubkey* | wc -l " 2
+	fi
+
+
 
 	if [ $RHEL == 5 ]; then
-	new_test "## Verify GPG RPMS ... "
-	assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-37017186-45761324"
-	assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
-    else
-	new_test "## Verify GPG RPMS ... "
-	assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-fd431d51-4ae0493b"
-	assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
+	 new_test "## Verify GPG RPMS ... "
+	 assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-37017186-45761324"
+	 assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
+	elif [ $RHEL_FOUND == "6.1" ]; then
+         assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-fd431d51-4ae0493b"
+         assert "rpm -qa gpg-pubkey* | sort -f | head -n 1" "gpg-pubkey-2fa658e0-45700c69"
+        else
+	 new_test "## Verify GPG RPMS ... "
+	 assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-fd431d51-4ae0493b"
+	 assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
     fi 
 }
 
