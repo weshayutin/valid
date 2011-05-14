@@ -34,6 +34,7 @@ function usage()
 	   echo "--skip-questions=   :: Please input the value  "yes" or "no""
 	   echo "--bugzilla-username :: Please specify your bugzilla username@email.com"
 	   echo "--bugzilla-password :: Please specify your bugzilla password"
+	   echo "--bugzilla-num      :: If a bug has already been opened you can specify the number here "
 }
 
 
@@ -64,6 +65,9 @@ for i in $*
 	  ;;
       --bugzilla-password=*)
 	  BUG_PASSWORD="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
+      --bugzilla-num=*)
+	  BUG_NUM="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
         *)
          # unknown option 
