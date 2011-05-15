@@ -67,7 +67,7 @@ conn_region = region.connect()
 print conn_region
 
 #east# reservation = ec2conn.run_instances('ami-8c8a7de5', instance_type='t1.micro', key_name='cloude-key')
-reservation = conn_region.run_instances(AMI, instance_type='t1.micro', key_name='cloude-key')
+reservation = conn_region.run_instances(AMI, instance_type='m1.xlarge', key_name='cloude-key')
 myinstance = reservation.instances[0]
 
 time.sleep(5)

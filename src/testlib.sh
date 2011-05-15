@@ -375,16 +375,20 @@ function test_system_id()
 
 function test_cloud-firstboot()
 {
-        new_test "## Verify rh-cloud-firstboot is on ... "
-	assert "chkconfig --list | grep rh-cloud | grep 3:off | wc -l" "1"
-        if [  -f /etc/sysconfig/rh-cloud-firstboot ]; then
-	 echo "/etc/sysconfig/rh-cloud-firstboot FOUND" >> $LOGFILE
-         assert "echo true"
-        else
-	 echo "/etc/sysconfig/rh-cloud-firstboot NOT FOUND" >> $LOGFILE
-	 assert "/bin/asdf"
+	if [ $RHELV == 6.0 ]; then
+	 echo "WAIVED TESTS FOR BUGZILLA 704821"
+	else
+         new_test "## Verify rh-cloud-firstboot is on ... "
+	 assert "chkconfig --list | grep rh-cloud | grep 3:off | wc -l" "1"
+         if [  -f /etc/sysconfig/rh-cloud-firstboot ]; then
+	  echo "/etc/sysconfig/rh-cloud-firstboot FOUND" >> $LOGFILE
+          assert "echo true"
+         else
+	  echo "/etc/sysconfig/rh-cloud-firstboot NOT FOUND" >> $LOGFILE
+	  assert "/bin/asdf"
+	 fi
+	 assert "cat /etc/sysconfig/rh-cloud-firstboot" "RUN_FIRSTBOOT=NO"
 	fi
-	assert "cat /etc/sysconfig/rh-cloud-firstboot" "RUN_FIRSTBOOT=NO"
 }
 
 function test_nameserver()
@@ -554,16 +558,16 @@ function test_syslog()
 {
         new_test "## Verify rsyslog is on ... " 
 	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
-	if [ $RHEL == 5 ] ; then
 	new_test "## Verify rsyslog config ... "
-	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "15936b6fe4e8fadcea87b54de495f975"
+	if [ $RHELV == 5 ] ; then
+         if [ $UNAMEI == "x86_64" ]; then
+	  assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
+	 elif  [ $UNAMEI == "i386" ]; then
+	  assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "15936b6fe4e8fadcea87b54de495f975"
+	 fi
 	else
-	new_test "## Verify rsyslog config ... "
-	assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "dd356958ca9c4e779f7fac13dde3c1b5"
+	 assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "dd356958ca9c4e779f7fac13dde3c1b5"
 	fi
-    	#deprecated 
-	#new_test "## Verify syslog config ... "
-	#assert "md5sum /etc/syslog.conf | cut -f 1 -d  \" \"" "213124ef612a63ae63d01e237e103488"
 }
 
 function test_auditd()
