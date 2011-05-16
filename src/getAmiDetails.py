@@ -18,7 +18,8 @@ parser.add_option('-r','--region', type='string', dest='REGION', help='specify e
 parser.add_option('-v','--RHEL_Version', type='string', dest='RHEL', help='RHEL version')
 parser.add_option('-b', '--bugzilla_number', type='string', dest='BZ', help='optional bugzilla number')
 parser.add_option('-a','--ami_number', type='string', dest='AMI', help='ami id number')
-parser.add_option('-s','--ssh-key', type='string',dest='SSHKEY',help='full path to ssh key for the ec2 region')
+parser.add_option('-s','--ssh-key-path', type='string',dest='SSHKEY',help='full path to ssh key for the ec2 region')
+parser.add_option('-k','--ssh-key-name', type='string',dest='SSHKEYNAME',help='name of the key pair')
 parser.add_option('-i','--ec2-key', type='string',dest='AWS_ACCESS_KEY_ID',help='EC2 Access Key ID')
 parser.add_option('-p','--ec2-secret-key', type='string',dest='AWS_SECRET_ACCESS_KEY',help='EC2 Secret Access Key ID')
 parser.add_option('-y','--bugzilla_username', type='string',dest='BZUSER',help='bugzilla username')
@@ -32,6 +33,7 @@ REGION = opts.REGION
 RHEL = opts.RHEL
 BZ = opts.BZ
 SSHKEY = opts.SSHKEY
+SSHKEYNAME = opts.SSHKEYNAME
 AWS_ACCESS_KEY_ID = opts.AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = opts.AWS_SECRET_ACCESS_KEY
 BZUSER = opts.BZUSER
@@ -70,9 +72,9 @@ print conn_region
 
 #east# reservation = ec2conn.run_instances('ami-8c8a7de5', instance_type='t1.micro', key_name='cloude-key')
 if ARCH == 'i386':
-    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name='cloude-key')
+    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME)
 elif ARCH == 'x86_64':
-    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name='cloude-key')
+    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name=SSHKEYNAME)
 else:
     print "arch type is neither i386 or x86_64.. will exit"
     exit(1)
@@ -91,7 +93,7 @@ instanceDetails = myinstance.__dict__
 publicDNS = instanceDetails['public_dns_name']
 print 'public hostname = ' + publicDNS
 print "sleep for 90 seconds"
-time.sleep(90)
+time.sleep(120)
 # check for console output here to make sure ssh is up
 
 filepath = "/home/whayutin/workspace/valid/src/*"
