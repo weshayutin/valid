@@ -23,6 +23,7 @@ parser.add_option('-i','--ec2-key', type='string',dest='AWS_ACCESS_KEY_ID',help=
 parser.add_option('-p','--ec2-secret-key', type='string',dest='AWS_SECRET_ACCESS_KEY',help='EC2 Secret Access Key ID')
 parser.add_option('-y','--bugzilla_username', type='string',dest='BZUSER',help='bugzilla username')
 parser.add_option('-z','--bugzilla_password', type='string',dest='BZPASS',help='bugzilla password')
+parser.add_option('-m','--arch',  dest='ARCH', default='x86_64', help='arch = i386, or x86_64') #c1.medium
 
 
 (opts, args) = parser.parse_args()
@@ -35,8 +36,9 @@ AWS_ACCESS_KEY_ID = opts.AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = opts.AWS_SECRET_ACCESS_KEY
 BZUSER = opts.BZUSER
 BZPASS = opts.BZPASS
+ARCH = opts.ARCH
 
-mandatories = ['AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
+mandatories = ['AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
 for m in mandatories:
     if not opts.__dict__[m]:
         print "mandatory option is missing\n"
@@ -67,7 +69,14 @@ conn_region = region.connect()
 print conn_region
 
 #east# reservation = ec2conn.run_instances('ami-8c8a7de5', instance_type='t1.micro', key_name='cloude-key')
-reservation = conn_region.run_instances(AMI, instance_type='m1.xlarge', key_name='cloude-key')
+if ARCH == 'i386':
+    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name='cloude-key')
+elif ARCH == 'x86_64':
+    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name='cloude-key')
+else:
+    print "arch type is neither i386 or x86_64.. will exit"
+    exit(1)
+    
 myinstance = reservation.instances[0]
 
 time.sleep(5)

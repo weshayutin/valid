@@ -98,14 +98,15 @@ function assert()
         args=("$@")
         cmd=${args[0]}
         option=${args[1]}
+        option2=${args[2]}
         echo "COMMAND:  $1"  >>$LOGFILE
         RSLT=`eval $cmd 2>>$LOGFILE`
         rc=$?
         echo "RESULT: $RSLT " >>$LOGFILE
-        echo "EXPECTED RESULT: $option " >>$LOGFILE
+        echo "EXPECTED RESULT: $option OR $option2 " >>$LOGFILE
         echo "RETURN CODE: $rc" >>$LOGFILE
 
-        if [ "$RSLT" == "$option" ] && [ "$option" != "" ];then
+        if [ "$RSLT" == "$option" ] || [ "$RSLT" == $option2 ] && [ "$option" != "" ];then
          #echo "IN SECOND TEST" >>$LOGFILE
          echo "${txtgrn}PASS${txtrst}" 
          echo "PASS" >> $LOGFILE
@@ -559,12 +560,9 @@ function test_syslog()
         new_test "## Verify rsyslog is on ... " 
 	assert "chkconfig --list | grep rsyslog | cut -f 5" "3:on"
 	new_test "## Verify rsyslog config ... "
-	if [ $RHELV == 5 ] ; then
-         if [ $UNAMEI == "x86_64" ]; then
-	  assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"
-	 elif  [ $UNAMEI == "i386" ]; then
-	  assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "15936b6fe4e8fadcea87b54de495f975"
-	 fi
+	if [ $RHEL == 5 ] ; then
+	  assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "bd4e328df4b59d41979ef7202a05e074"  "15936b6fe4e8fadcea87b54de495f975"
+	  #assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "15936b6fe4e8fadcea87b54de495f975"
 	else
 	 assert "md5sum /etc/rsyslog.conf | cut -f 1 -d  \" \"" "dd356958ca9c4e779f7fac13dde3c1b5"
 	fi
