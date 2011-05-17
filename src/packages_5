@@ -54,7 +54,6 @@ grub
 hdparm
 iptstate
 irqbalance
-iscsi-initiator-utils
 jwhois
 kernel-xen
 kernel-xen-devel
