@@ -596,7 +596,7 @@ function test_uname()
 
 	new_test "## Verify latest installed kernel is running ... "
 	#cat /boot/grub/grub.conf | awk '/title/ {print $NF}' | sed 's/[()]//g' > /tmp/kernel1
-	echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`" >> $LOGFILE
+	echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | sort -rn | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`" >> $LOGFILE
 	echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`" >> $LOGFILE
 	LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`
 	CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`
