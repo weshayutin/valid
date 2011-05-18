@@ -140,9 +140,9 @@ test_uname
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
+setup_rc.local
 open_bugzilla
 #sos_report
-setup_rc.local
 echo "REBOOTING"
 sleep 1
 echo "REBOOTING"
