@@ -107,6 +107,7 @@ if [ $QUESTIONS == "no" ];then
 fi
 echo "##### START TESTS #####"
 echo ""
+test_uname
 test_disk_format
 test_disk_size
 test_selinux
@@ -135,7 +136,6 @@ test_sshd
 test_chkconfig
 test_syslog
 test_auditd
-test_uname
 
 
 ### DONT REMOVE OR COMMENT OUT ###
