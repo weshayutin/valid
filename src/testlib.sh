@@ -15,7 +15,6 @@
 # written by whayutin@redhat.com
 # modified by kbidarka@redhat.com
 
-FAILURES=0
 LOGFILE=$PWD/validate.log
 DLOG=" tee -a ${LOGFILE} " #Display and log output
 cat /dev/null > $LOGFILE
@@ -56,6 +55,8 @@ rm -Rf tmp1_partitions tmp2_partitions
 RHEL=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $1}'`
 RHELU=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $2}'`
 RHEL_FOUND=$RHEL.$RHELU
+KERNEL=""
+KERNEL_UPDATED=""
 
 echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
 
@@ -103,10 +104,14 @@ function assert()
         RSLT=`eval $cmd 2>>$LOGFILE`
         rc=$?
         echo "RESULT: $RSLT " >>$LOGFILE
-        echo "EXPECTED RESULT: $option OR $option2 " >>$LOGFILE
+	if [ -z $option2 ];then
+         echo "EXPECTED RESULT: $option" >>$LOGFILE
+	else
+         echo "EXPECTED RESULT: $option OR $option2 " >>$LOGFILE
+	fi
         echo "RETURN CODE: $rc" >>$LOGFILE
 
-        if [ "$RSLT" == "$option" ] || [ "$RSLT" == $option2 ] && [ "$option" != "" ];then
+        if [[ "$RSLT" == "$option" ]] || [[ "$RSLT" == $option2 ]] && [[ "$option" != "" ]];then
          #echo "IN SECOND TEST" >>$LOGFILE
          echo "${txtgrn}PASS${txtrst}" 
          echo "PASS" >> $LOGFILE
@@ -589,25 +594,30 @@ function test_uname()
         new_test "## Verify kernel name ... "
 	assert "/bin/uname -s" Linux
 
-	#if [ $RHEL == 5 ] ; then
-	new_test "## Verify kernel release ... "
-	DEF=`cat /boot/grub/grub.conf | awk -F= '/default/ {print $2}'`
-	let DEF++
-	cat /boot/grub/grub.conf | awk '/title/ {print $NF}' | sed 's/[()]//g' > /tmp/kernel1
-	rt=`sed -n "$DEF"p /tmp/kernel1`
-	#rt=`rpm -qa kernel\* --queryformat="%{VERSION}-%{RELEASE}\n" | sort -f | uniq`
-        assert "/bin/uname -r" $rt
-	#else
-	#new_test "## Verify kernel release ... "
-	#DEF=`cat /boot/grub/grub.conf | awk -F= '/default/ {print $2}'`
-	#let DEF++
-	#cat /boot/grub/grub.conf | awk '/title/ {print $NF}' | sed 's/[()]//g ; s/xen$//g' > /tmp/kernel1
-	#rt=`sed -n "$DEF"p /tmp/kernel1`
-	#rt=`rpm -qa kernel\* --queryformat="%{VERSION}-%{RELEASE}.%{ARCH}\n" | grep -v noarch | uniq`
-        #assert "/bin/uname -r" $rt
-	#fi
+	new_test "## Verify latest installed kernel is running ... "
+	#cat /boot/grub/grub.conf | awk '/title/ {print $NF}' | sed 's/[()]//g' > /tmp/kernel1
+	echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`" >> $LOGFILE
+	echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`" >> $LOGFILE
+	LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`
+	CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`
+	echo "assert latest rpm kernel = uname -r" >> $LOGFILE
+        #assert "rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'"  $CURRENT_UNAME_KERNAL_VERSION
+	assert "uname -r | sed 's/\(.*\)......./\1/'"  $LATEST_RPM_KERNEL_VERSION
+ 
+	new_test "## Verify latest kenerl is in /boot/grub/menu.1st ... "
+	assert "cat /boot/grub/menu.lst | grep $LATEST_RPM_KERNEL_VERSION"
+
 	new_test "## Verify operating system ... "
 	assert "/bin/uname -o" GNU/Linux
+	
+        new_test "## Verify /etc/sysconfig/kernel ... "
+	assert "ls /etc/sysconfig/kernel"
+ 
+	new_test "## Verify /etc/sysconfig/kernel contains UPDATEDEFAULT ... "
+  	assert "cat /etc/sysconfig/kernel | grep UPDATEDEFAULT=yes"
+	
+	new_test "## Verify /etc/sysconfig/kernel contains DEFAULTKERNEL ... "
+  	assert "cat /etc/sysconfig/kernel | grep DEFAULTKERNEL=kernel"
 
 }
 
@@ -645,10 +655,16 @@ function open_bugzilla()
 
 	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
+}
+
+function verify_bugzilla()
+{
+	echo "If no failures found move bug to verified"
 	if [ $FAILURES == 0 ];then
           echo "MOVING BUG TO VERIFIED: test has $FAILURES failures"
 	  $BUGZILLACOMMAND modify --status="VERIFIED" $BUGZILLA	
 	fi
+
 }
 
 
@@ -664,6 +680,11 @@ function remove_bugzilla_rpms()
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 }
 
+function setup_rc.local()
+{
+echo "cd /root" >> /etc/rc.local
+echo "/root/image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES >> /var/log/messages" >> /etc/rc.local
+}
 
 
 function show_failures()

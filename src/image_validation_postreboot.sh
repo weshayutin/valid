@@ -69,6 +69,9 @@ for i in $*
       --bugzilla-num=*)
 	  BUG_NUM="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
+      --failures=*)
+	  FAILURES="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
         *)
          # unknown option 
 	   usage
@@ -99,57 +102,18 @@ echo ""
 echo ""
 test_rhel_version
 echo ""
-if [ $QUESTIONS == "no" ];then
- userInput_CloudProvider
- userInput_Filesystem
- userInput_Errata_Notification
- userInput_Availability
-fi
 echo "##### START TESTS #####"
 echo ""
-test_disk_format
-test_disk_size
-test_selinux
-test_package_set
-test_verify_rpms
-test_gpg_keys
-#test_repos #remarking this out for now.. until additional repo's land. the yum tests should be sufficient
 test_yum_plugin
-if [ $yum_test == "yes" ];then
- test_yum_full_test
-else
- test_yum_general_test
-fi
-test_bash_history
-test_system_id
-test_cloud-firstboot
-test_nameserver
-test_group
-test_passwd
-test_inittab
-test_shells
-test_IPv6
-test_networking
-test_iptables
-test_sshd
-test_chkconfig
-test_syslog
-test_auditd
 test_uname
 
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
 open_bugzilla
-#sos_report
-setup_rc.local
-echo "REBOOTING"
-sleep 1
-echo "REBOOTING"
-sleep 1
-echo "REBOOTING"
-reboot
-#im_exit
+verify_bugzilla
+sos_report
+im_exit
 ##################################
 
 
