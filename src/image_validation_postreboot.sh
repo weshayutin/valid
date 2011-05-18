@@ -100,6 +100,7 @@ echo "***************** DETAILED RESULTS LOGGED TO validate.log  ***************
 echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
 echo "" 
 echo ""
+postReboot
 test_rhel_version
 echo ""
 echo "##### START TESTS #####"
