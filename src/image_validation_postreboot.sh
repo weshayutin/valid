@@ -106,6 +106,7 @@ echo "##### START TESTS #####"
 echo ""
 test_yum_plugin
 test_uname
+print_rhel_version
 
 
 ### DONT REMOVE OR COMMENT OUT ###

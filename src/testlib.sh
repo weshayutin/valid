@@ -129,7 +129,6 @@ function assert()
 
 function test_rhel_version()
 {
-	
         echo  hostname >> $LOGFILE
 	echo  `cat /etc/redhat-release`
         if [ $RHELV == $RHEL_FOUND ]; then
@@ -139,6 +138,19 @@ function test_rhel_version()
           exit
         fi
 }
+
+function print_rhel_version()
+{
+        echo  hostname >> $LOGFILE
+	echo  `cat /etc/redhat-release`
+        if [ $RHELV == $RHEL_FOUND ]; then
+          new_test "The selected image has the version RHEL $RHELV"
+        else
+          echo "Version Mismatched !!!!, The input version RHEL$RHELV should be similar to the selected Ami's version RHEL$RHEL_FOUND" 
+          echo "Version Mismatched !!!!, Check the logs to see if yum update changed the RHEL version" 
+        fi
+}
+	
 
 function userInput_CloudProvider()
 {
