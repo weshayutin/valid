@@ -471,7 +471,7 @@ function test_gpg_keys()
 	if [ $RHEL == 5 ]; then	
 	 assert "rpm -qa gpg-pubkey* | wc -l " 2
 	elif [ $RHEL_FOUND == "6.1" ]; then
-	 assert "rpm -qa gpg-pubkey* | wc -l " 4
+	 assert "rpm -qa gpg-pubkey* | wc -l " 2
 	else
 	 assert "rpm -qa gpg-pubkey* | wc -l " 2
 	fi
