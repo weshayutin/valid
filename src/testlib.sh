@@ -595,14 +595,24 @@ function test_uname()
 	assert "/bin/uname -s" Linux
 
 	new_test "## Verify latest installed kernel is running ... "
-	#cat /boot/grub/grub.conf | awk '/title/ {print $NF}' | sed 's/[()]//g' > /tmp/kernel1
-	echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | sort -rn | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`" >> $LOGFILE
-	echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`" >> $LOGFILE
-	LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`
-	CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`
-	echo "assert latest rpm kernel = uname -r" >> $LOGFILE
-        #assert "rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'"  $CURRENT_UNAME_KERNAL_VERSION
-	assert "uname -r | sed 's/\(.*\)......./\1/'"  $LATEST_RPM_KERNEL_VERSION
+	if [ $RHEL == 5 ] ; then
+	 echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | head -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`" >> $LOGFILE
+	 LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | head -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`
+	 echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`" >> $LOGFILE
+	 CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`
+	 echo "assert latest rpm kernel = uname -r" >> $LOGFILE
+         #assert "rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'"  $CURRENT_UNAME_KERNAL_VERSION
+	 assert "uname -r | sed 's/\(.*\)......./\1/'"  $LATEST_RPM_KERNEL_VERSION
+	else
+	 echo "RHEL VERSION IS $RHEL" >> $LOGFILE
+	 echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel | sort -n | head -n 1 | cut -c 8-50 | sed 's/\(.*\).........../\1/'`" >> $LOGFILE
+	 LATEST_RPM_KERNEL_VERSION=`rpm -q kernel | sort -n | head -n 1 | cut -c 8-50 | sed 's/\(.*\).........../\1/'`
+	 echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`" >> $LOGFILE
+	 CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\).........../\1/'`
+	 echo "assert latest rpm kernel = uname -r" >> $LOGFILE
+         #assert "rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'"  $CURRENT_UNAME_KERNAL_VERSION
+	 assert "uname -r | sed 's/\(.*\).........../\1/'"  $LATEST_RPM_KERNEL_VERSION
+	fi
  
 	new_test "## Verify latest kenerl is in /boot/grub/menu.1st ... "
 	assert "cat /boot/grub/menu.lst | grep $LATEST_RPM_KERNEL_VERSION"
@@ -683,8 +693,8 @@ function remove_bugzilla_rpms()
 function setup_rc.local()
 {
 	echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
-	echo "cd /root" >> /etc/rc.local
-	echo "/root/image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES >> /var/log/messages" >> /etc/rc.local
+	echo "cd /root/valid/src" >> /etc/rc.local
+	echo "./image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES >> /var/log/messages" >> /etc/rc.local
 	cat /etc/rc.local >> $LOGFILE
 
 echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
