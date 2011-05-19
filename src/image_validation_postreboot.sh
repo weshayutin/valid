@@ -101,7 +101,6 @@ echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 echo "" 
 echo ""
 postReboot
-test_rhel_version
 echo ""
 echo "##### START TESTS #####"
 echo ""
