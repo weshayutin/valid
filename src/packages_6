@@ -23,9 +23,7 @@ attr
 audit
 audit-libs
 authconfig
-autoconf
 autofs
-automake
 avahi-libs
 b43-fwcutter
 b43-openfwwf
@@ -36,11 +34,9 @@ bfa-firmware
 bind-libs
 bind-utils
 binutils
-bison
 blktrace
 bridge-utils
 busybox
-byacc
 bzip2
 bzip2-libs
 ca-certificates
@@ -72,8 +68,6 @@ crda
 cronie
 cronie-anacron
 crontabs
-cscope
-ctags
 cups-libs
 curl
 cvs
@@ -98,11 +92,9 @@ device-mapper-event-libs
 device-mapper-libs
 dhclient
 dialog
-diffstat
 diffutils
 dos2unix
 dosfstools
-doxygen
 dracut
 dracut-kernel
 dstat
@@ -126,7 +118,6 @@ findutils
 finger
 fipscheck
 fipscheck-lib
-flex
 fontconfig
 fontpackages-filesystem
 fprintd
@@ -136,16 +127,11 @@ ftp
 gamin
 gawk
 gcc
-gcc-c++
-gcc-gfortran
 gd
 gdb
 gdbm
 gettext
-gettext-devel
-gettext-libs
 giflib
-git
 glib2
 glibc
 glibc-common
@@ -169,10 +155,8 @@ hicolor-icon-theme
 httpd
 httpd-tools
 hwdata
-indent
 info
 initscripts
-intltool
 iotop
 ipa-client
 iproute
@@ -268,7 +252,6 @@ libsndfile
 libss
 libssh2
 libstdc++
-libstdc++-devel
 libsysfs
 libtalloc
 libtar
@@ -279,7 +262,6 @@ libthai
 libtheora
 libtiff
 libtirpc
-libtool
 libtool-ltdl
 libtopology
 libudev
@@ -403,7 +385,6 @@ pango
 parted
 passwd
 patch
-patchutils
 pax
 pciutils
 pciutils-libs
@@ -427,13 +408,11 @@ perl-DBI
 perl-DBIx-Simple
 perl-devel
 perl-Digest-SHA
-perl-Error
 perl-ExtUtils-CBuilder
 perl-ExtUtils-Embed
 perl-ExtUtils-MakeMaker
 perl-ExtUtils-ParseXS
 perl-File-Fetch
-perl-Git
 perl-HTML-Parser
 perl-HTML-Tagset
 perl-IO-Compress-Base
@@ -522,7 +501,6 @@ ql23xx-firmware
 ql2400-firmware
 ql2500-firmware
 quota
-rcs
 rdate
 readahead
 readline
@@ -531,7 +509,6 @@ redhat-indexhtml
 redhat-logos
 redhat-lsb
 redhat-release-server
-redhat-rpm-config
 rfkill
 rh-amazon-rhui-client
 rhino
@@ -543,7 +520,6 @@ rhn-setup
 rng-tools
 rootfiles
 rpm
-rpm-build
 rpm-libs
 rpm-python
 rsync
@@ -573,14 +549,12 @@ strace
 stunnel
 subversion
 sudo
-swig
 symlinks
 sysfsutils
 sysstat
 system-config-firewall-base
 system-config-firewall-tui
 system-config-network-tui
-systemtap
 systemtap-runtime
 sysvinit-tools
 tar
