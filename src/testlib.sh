@@ -129,7 +129,8 @@ function assert()
 
 function test_rhel_version()
 {
-        echo  hostname >> $LOGFILE
+	pwd >> $LOGFILE
+        hostname >> $LOGFILE
 	echo  `cat /etc/redhat-release`
         if [ $RHELV == $RHEL_FOUND ]; then
           new_test "The selected image has the version RHEL $RHELV"
@@ -655,6 +656,10 @@ function sos_report()
 
 function open_bugzilla()
 {
+	echo "######### /etc/rc.local ########" >> $LOGFILE
+	cat /etc/rc.local >> $LOGFILE	
+	echo "######### /etc/rc.local ########" >> $LOGFILE
+
  	BUGZILLACOMMAND=$DIFFDIR/bugzilla-command
 	new_test "## Open a bugzilla"
 	echo ""
