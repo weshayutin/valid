@@ -656,9 +656,9 @@ function sos_report()
 
 function open_bugzilla()
 {
-	echo "######### /etc/rc.local ########" >> $LOGFILE
-	cat /etc/rc.local >> $LOGFILE	
-	echo "######### /etc/rc.local ########" >> $LOGFILE
+	#echo "######### /etc/rc.local ########" >> $LOGFILE
+	#cat /etc/rc.local >> $LOGFILE	
+	#echo "######### /etc/rc.local ########" >> $LOGFILE
 
  	BUGZILLACOMMAND=$DIFFDIR/bugzilla-command
 	new_test "## Open a bugzilla"
