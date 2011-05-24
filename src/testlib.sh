@@ -667,7 +667,7 @@ function open_bugzilla()
 	echo ""
 	$BUGZILLACOMMAND --bugzilla=https://bugzilla.redhat.com/xmlrpc.cgi --user=$BUG_USERNAME --password=$BUG_PASSWORD login
 	if [ -z $BUG_NUM ]; then 
-	 BUGZILLA=`$BUGZILLACOMMAND new  -p"Cloud Image Validation" -v"1.0" -c"images" -l"initial bug opening" -s"$IMAGEID $SYSDATE" | cut -b "2-8"`
+	BUGZILLA=`$BUGZILLACOMMAND new  -p"Cloud Image Validation" -v"RHEL$RHELV" -a"$UNAMEI" -c"images" -l"initial bug opening" -s"$IMAGEID $RHELV $UNAMEI " | cut -b "2-8"`
 	 echo ""
 	 echo "new bug created: $BUGZILLA https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 	 echo ""
