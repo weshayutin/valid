@@ -106,19 +106,26 @@ function assert()
         echo "RESULT: $RSLT " >>$LOGFILE
 	if [ -z $option2 ];then
          echo "EXPECTED RESULT: $option" >>$LOGFILE
+	 option2="zzz###zzz"
 	else
          echo "EXPECTED RESULT: $option OR $option2 " >>$LOGFILE
 	fi
         echo "RETURN CODE: $rc" >>$LOGFILE
 
         if [[ "$RSLT" == "$option" ]] || [[ "$RSLT" == $option2 ]] && [[ "$option" != "" ]];then
-         #echo "IN SECOND TEST" >>$LOGFILE
+         #echo "IN FIRST TEST" >>$LOGFILE
          echo "${txtgrn}PASS${txtrst}" 
          echo "PASS" >> $LOGFILE
         elif [ -z "$option" ] && [ "$rc" == 0 ];then
-         #echo "IN THIRD TEST" >>$LOGFILE
+         #echo "IN SECOND TEST" >>$LOGFILE
          echo "${txtgrn}PASS${txtrst}" 
          echo "PASS" >> $LOGFILE
+        elif [[ "$RSLT" != "$option" ]] && [[ "$RSLT" != "$option2" ]] &&  [[ "$rc" != 0 ]] ;then
+         #echo "IN THIRD TEST" >>$LOGFILE
+         echo "${txtred}FAIL${txtrst}" 
+         echo "FAIL" >>  $LOGFILE
+          echo ${RSLT} >>${LOGFILE}
+          let FAILURES++
         else
          echo "${txtred}FAIL${txtrst}" 
          echo "FAIL" >>  $LOGFILE
