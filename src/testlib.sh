@@ -575,7 +575,7 @@ function test_chkconfig()
 function test_sshSettings()
 {
 	new_test "## Verify sshd_config settings ..."
-	assert "cat /etc/ssh/sshd_config  | grep  PasswordAuthentication no" "PasswordAuthentication no"
+	assert "cat /etc/ssh/sshd_config  | grep  PasswordAuthentication" "PasswordAuthentication no"
 }
 
 function test_syslog()
