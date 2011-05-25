@@ -572,6 +572,11 @@ function test_chkconfig()
     fi
 }
 
+function test_sshSettings()
+{
+	new_test "## /etc/ssh/sshd_config ..."
+	assert "cat /etc/ssh/sshd_config  | grep  "PasswordAuthentication no" "PasswordAuthentication no"
+}
 
 function test_syslog()
 {

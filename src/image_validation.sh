@@ -136,6 +136,7 @@ test_sshd
 test_chkconfig
 test_syslog
 test_auditd
+test_sshSettings
 
 
 ### DONT REMOVE OR COMMENT OUT ###
