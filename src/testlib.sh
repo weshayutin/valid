@@ -356,10 +356,10 @@ function test_yum_full_test()
         assert "/usr/bin/yum -y update"  
  	
 	new_test "## Verify no failures in rpm package ... "
-	assert "cat $LOGFILE | grep 'failure in rpm package' | wc -l" "0"
+	assert "cat $LOGFILE | grep 'failure in rpm package' | wc -l" "1"
 	
 	new_test "## Verify no rpm scriplet failures ... "
-	assert "cat $LOGFILE | grep 'scriptlet failed, exit status 1' | wc -l" "0"
+	assert "cat $LOGFILE | grep 'scriptlet failed, exit status 1' | wc -l" "1"
 
         new_test "## Verify package removal... "
         rc "/bin/rpm -e zsh"
