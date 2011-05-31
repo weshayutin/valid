@@ -24,6 +24,7 @@ LOGRESULT="echo ${RSLT} 1>>$LOGFILE 2>>$LOGFILE"
 DIFFDIR=$PWD
 SYSDATE=$( /bin/date '+%Y-%m-%d %H:%M' )
 UNAMEI=$( /bin/uname -i )
+BETA=0
 
 echo ""
 echo ""
@@ -142,13 +143,17 @@ function test_rhel_version()
 {
 	pwd >> $LOGFILE
         hostname >> $LOGFILE
-	echo  `cat /etc/redhat-release`
+	echo  `cat /etc/redhat-release` >> $LOGFILE
         if [ $RHELV == $RHEL_FOUND ]; then
           new_test "The selected image has the version RHEL $RHELV"
         else
           echo "Version Mismatched !!!!, The input version RHEL$RHELV should be similar to the selected Ami's version RHEL$RHEL_FOUND" 
           exit
         fi
+	BETA = `cat /etc/redhat-release  | grep -i beta | wc -l`
+	if [ $BETA == 1 ]; then 
+	 echo "ami is a BETA" >> $LOGFILE
+	fi
 }
 
 function print_rhel_version()
@@ -498,8 +503,8 @@ function test_gpg_keys()
 	assert "grep '^gpgcheck=1' /etc/yum.repos.d/redhat-*.repo | cut -d\= -f2 | sort -f | uniq" 1
 
 	new_test "## Verify GPG Keys ... "
-	if [ $RHEL == 5 ]; then	
-	 assert "rpm -qa gpg-pubkey* | wc -l " 2
+	if [ $BETA == 1 ]; then	
+	 assert "rpm -qa gpg-pubkey* | wc -l " 3
 	elif [ $RHEL_FOUND == "6.1" ]; then
 	 assert "rpm -qa gpg-pubkey* | wc -l " 2
 	else
@@ -507,19 +512,20 @@ function test_gpg_keys()
 	fi
 
 
-
-	if [ $RHEL == 5 ]; then
+	if [ $BETA == 1 ]; then
+ 	 echo "SKIPPING TEST, BETA DETECTED" >> $LOGFILE
+	elif [[ $RHEL == 5 ]] && [[ $BETA == 0 ]]; then
 	 new_test "## Verify GPG RPMS ... "
 	 assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-37017186-45761324"
 	 assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
-	elif [ $RHEL_FOUND == "6.1" ]; then
+	elif [[ $RHEL_FOUND == "6.1" ]] && [[ $BETA == 0 ]]; then
          assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-fd431d51-4ae0493b"
          assert "rpm -qa gpg-pubkey* | sort -f | head -n 1" "gpg-pubkey-2fa658e0-45700c69"
         else
 	 new_test "## Verify GPG RPMS ... "
 	 assert "rpm -qa gpg-pubkey* | sort -f | tail -n 1" "gpg-pubkey-fd431d51-4ae0493b"
 	 assert "rpm -qa gpg-pubkey* |  grep 2fa6" "gpg-pubkey-2fa658e0-45700c69"
-    fi 
+    	fi 
 }
 
 function test_IPv6()
