@@ -137,6 +137,7 @@ test_chkconfig
 test_syslog
 test_auditd
 test_sshSettings
+test_libc6-xen.conf
 
 
 ### DONT REMOVE OR COMMENT OUT ###
