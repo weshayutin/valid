@@ -16,6 +16,7 @@
 # modified by kbidarka@redhat.com
 
 LOGFILE=$PWD/validate.log
+CSVFILE=$PWD/csv
 DLOG=" tee -a ${LOGFILE} " #Display and log output
 cat /dev/null > $LOGFILE
 RSLT=""
@@ -118,6 +119,9 @@ function assert()
          echo "PASS" >> $LOGFILE
         elif [ -z "$option" ] && [ "$rc" == 0 ];then
          #echo "IN SECOND TEST" >>$LOGFILE
+         echo "${txtgrn}PASS${txtrst}" 
+         echo "PASS" >> $LOGFILE
+	elif [[ "$rc" == "$option" ]];then
          echo "${txtgrn}PASS${txtrst}" 
          echo "PASS" >> $LOGFILE
         elif [[ "$RSLT" != "$option" ]] && [[ "$RSLT" != "$option2" ]] &&  [[ "$rc" != 0 ]] ;then
@@ -591,6 +595,16 @@ function test_sshSettings()
 	assert "cat /etc/ssh/sshd_config  | grep  PasswordAuthentication | grep no" "PasswordAuthentication no"
 }
 
+function test_libc6-xen.conf()
+{
+	new_test "## Verify /etc/ld.so.conf.d/libc6-xen.conf is not present ... "
+	if [ $UNAMEI == "x86_64" ]; then
+  	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "0"
+	else
+	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "2"	
+	fi
+}
+
 function test_syslog()
 {
         new_test "## Verify rsyslog is on ... " 
@@ -731,6 +745,7 @@ function setup_rc.local()
 	echo "cd /root/valid/src" >> /etc/rc.local
 	echo "./image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES >> /var/log/messages" >> /etc/rc.local
 	cat /etc/rc.local >> $LOGFILE
+	echo "$BUGZILLA" > $CSVFILE
 
 echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
 }
