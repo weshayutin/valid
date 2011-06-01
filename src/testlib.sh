@@ -150,7 +150,7 @@ function test_rhel_version()
           echo "Version Mismatched !!!!, The input version RHEL$RHELV should be similar to the selected Ami's version RHEL$RHEL_FOUND" 
           exit
         fi
-	BETA = `cat /etc/redhat-release  | grep -i beta | wc -l`
+	BETA=`cat /etc/redhat-release  | grep -i beta | wc -l`
 	if [ $BETA == 1 ]; then 
 	 echo "ami is a BETA" >> $LOGFILE
 	fi
@@ -304,7 +304,11 @@ function test_package_set()
         fi
 
 	cat /tmp/package_diff >>$LOGFILE
-	assert "cat /tmp/package_diff | wc -l" 0
+	if [ $BETA == 1 ]; then
+	 assert "cat /tmp/package_diff | wc -l" 1
+	else
+	 assert "cat /tmp/package_diff | wc -l" 0
+	fi
 }
 
 function test_verify_rpms()
@@ -607,7 +611,7 @@ function test_libc6-xen.conf()
 	if [ $UNAMEI == "x86_64" ]; then
   	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "0"
 	else
-	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "2"	
+	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "0"	
 	fi
 }
 
