@@ -16,7 +16,6 @@
 # modified by kbidarka@redhat.com
 
 LOGFILE=$PWD/validate.log
-CSVFILE=$PWD/csv
 DLOG=" tee -a ${LOGFILE} " #Display and log output
 cat /dev/null > $LOGFILE
 RSLT=""
@@ -36,20 +35,8 @@ txtrst=$(tput sgr0)       # Text reset
 ### Begin:  Create a list of partitions
 rm -Rf disk_partitions
 rm -Rf swap_partitions
-#parted -l  | grep Disk | awk '{print $2}' > tmp1_partitions
-#for i in `cat tmp1_partitions`;do echo $i | sed '$s/.$//' >> tmp2_partitions;done
 mount | grep ^/dev | awk '{print $1}' >> disk_partitions
 parted -l | grep -B 5 swap | grep ^Disk | awk '{print $2}' | sed '$s/.$//' >> swap_partitions
-#for part in `cat tmp2_partitions`;do
-#   cat /etc/fstab | grep -x $part | grep swap 2>&1 > /dev/null
-#   rc=$?
-#   if [ "$rc" == "1" ]
-#      then
-#      echo "$part" >> disk_partitions
-#   else
-#      echo "$part" >> swap_partitions
-#   fi
-#done
 
 rm -Rf tmp1_partitions tmp2_partitions
 ### End:  Create a list of partitions
@@ -59,7 +46,8 @@ RHELU=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $2}'`
 RHEL_FOUND=$RHEL.$RHELU
 KERNEL=""
 KERNEL_UPDATED=""
-
+TEST_CURRENT=""
+TEST_FAILED=""
 echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
 
 
@@ -69,6 +57,7 @@ function new_test()
 	echo -n $1
 	echo "######################################################################################" >> $LOGFILE
 	echo "# NEW TEST: $1" >> $LOGFILE
+	TEST_CURRENT=$1
 	echo "######################################################################################" >> $LOGFILE
 }
 
@@ -129,13 +118,15 @@ function assert()
          #echo "IN THIRD TEST" >>$LOGFILE
          echo "${txtred}FAIL${txtrst}" 
          echo "FAIL" >>  $LOGFILE
-          echo ${RSLT} >>${LOGFILE}
-          let FAILURES++
+         echo ${RSLT} >>${LOGFILE}
+	 TEST_FAILED="$TEST_FAILED $TEST_CURRENT"
+         let FAILURES++
         else
          echo "${txtred}FAIL${txtrst}" 
          echo "FAIL" >>  $LOGFILE
-          echo ${RSLT} >>${LOGFILE}
-          let FAILURES++
+         echo ${RSLT} >>${LOGFILE}
+	 TEST_FAILED="$TEST_FAILED $TEST_CURRENT"
+         let FAILURES++
         fi
 }
 
@@ -602,16 +593,16 @@ function test_chkconfig()
 function test_sshSettings()
 {
 	new_test "## Verify sshd_config settings ..."
-	assert "cat /etc/ssh/sshd_config  | grep  PasswordAuthentication | grep no" "PasswordAuthentication no"
+	assert "cat /etc/ssh/sshd_config  | grep  PasswordAuthentication | grep no | wc -l" "1"
 }
 
 function test_libc6-xen.conf()
 {
 	new_test "## Verify /etc/ld.so.conf.d/libc6-xen.conf is not present ... "
 	if [ $UNAMEI == "x86_64" ]; then
-  	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "0"
+  	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "2"
 	else
-	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "0"	
+	 assert "ls /etc/ld.so.conf.d/libc6-xen.conf" "2"	
 	fi
 }
 
@@ -755,7 +746,6 @@ function setup_rc.local()
 	echo "cd /root/valid/src" >> /etc/rc.local
 	echo "./image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES >> /var/log/messages" >> /etc/rc.local
 	cat /etc/rc.local >> $LOGFILE
-	echo "$BUGZILLA" > $CSVFILE
 
 echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
 }
@@ -772,6 +762,9 @@ function show_failures()
 	echo "" | $DLOG
         echo "## Summary ##" | $DLOG
 	echo "FAILURES = ${FAILURES}" | $DLOG
+	echo $TEST_FAILED >> $PWD/failed_tests
+	FAILED=`cat $PWD/failed_tests`
+	echo "FAILED TESTS = ${FAILED}" | $DLOG
 	echo "LOG FILE = ${LOGFILE}" | $DLOG
         echo "## Summary ##" |  $DLOG
 	echo "" | $DLOG
@@ -782,6 +775,7 @@ function im_exit()
 	echo "" 
         echo "## Summary ##" 
 	echo "FAILURES = ${FAILURES}" 
+	echo "FAILED TESTS = ${FAILED}" 
 	echo "LOG FILE = ${LOGFILE}" 
         echo "## Summary ##" 
 	echo "" 

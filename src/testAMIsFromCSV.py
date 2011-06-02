@@ -3,7 +3,7 @@ from boto import ec2
 import sys, time, optparse, os, paramiko
 import csv 
 
-CSVFILE = "test.csv"
+CSVFILE = "test01.csv"
 parser = optparse.OptionParser()
 desc="ami test script"
 
@@ -83,7 +83,7 @@ for x in range(len(ami)):
     if ARCH == 'i386':
         reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME)
     elif ARCH == 'x86_64':
-        reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name=SSHKEYNAME)
+        reservation = conn_region.run_instances(AMI, instance_type='m2.4xlarge', key_name=SSHKEYNAME)
     else:
         print "arch type is neither i386 or x86_64.. will exit"
         exit(1)
