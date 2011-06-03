@@ -679,10 +679,12 @@ function test_uname()
 
 function installTestKernel()
 {
-	new_test "## kernel-2.6.32-131.0.15.el6mask_nonstop_tsc.x86_64.rpm"
+	new_test "## kernel-2.6.32-131.0.15.el6zero_x86_power"
 	cat /proc/cpuinfo | grep nonstop_tsc >> $LOGFILE
-	echo "rpm -Uvh $PWD/kernel/*"
-	rpm -Uvh $PWD/kernel/*
+	echo "rpm -ivh $PWD/kernel/*"
+	rpm -ivh $PWD/kernel/*
+	cat /boot/grub/grub.conf > /boot/grub/menu.lst
+	/bin/sed -i -e 's/(hd0,0)/(hd0)/' /boot/grub/menu.lst
 }
 
 function test_grub()
