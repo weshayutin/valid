@@ -107,7 +107,7 @@ echo ""
 test_yum_plugin
 test_uname
 print_rhel_version
-installTestKernel
+#installTestKernel
 
 
 ### DONT REMOVE OR COMMENT OUT ###
