@@ -309,6 +309,7 @@ function test_verify_rpms()
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
+        echo "/bin/rpm -Va --nomtime --nosize --nomd5" >> $LOGFILE
 	    cat $file >> $LOGFILE
 	    cat rpmVerifyTable >> $LOGFILE
         assert "cat ${file} | wc -l" "2"
@@ -359,10 +360,10 @@ function test_yum_full_test()
         new_test "## Verify yum update ... "
         assert "/usr/bin/yum -y update"  
  	
-	new_test "## Verify no failures in rpm package ... "
+	new_test "## Verify no fa1lures in rpm package ... "
 	assert "cat $LOGFILE | grep 'failure in rpm package' | wc -l" "1"
 	
-	new_test "## Verify no rpm scriplet failures ... "
+	new_test "## Verify no rpm scriplet fa1lures ... "
 	assert "cat $LOGFILE | grep 'scriptlet failed, exit status 1' | wc -l" "1"
 
         new_test "## Verify package removal... "
