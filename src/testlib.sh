@@ -692,7 +692,7 @@ function test_grub()
 	new_test "##test menu.lst ... "
 	assert "file /boot/grub/menu.lst  | grep symbolic | wc -l" "1"
 	assert "file /boot/grub/menu.lst  | grep grub.conf | wc -l" "1"
-	assert "cat /boot/grub/grub.conf  | grep "(hd0,0)" | wc -l "0"
+	assert "cat /boot/grub/grub.conf  | grep \"(hd0,0)\" | wc -l" "0"
 }
 
 function sos_report()
