@@ -315,16 +315,16 @@ function test_verify_rpms()
         assert "cat ${file} | wc -l" "2"
         new_test "## Verify Version 2 ... "
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" $RHELV # to-do, pass this in
-	else
+     else
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
 	    cat $file >> $LOGFILE
 	    cat rpmVerifyTable >> $LOGFILE
-        assert "cat ${file} | wc -l" "4"
+        assert "cat ${file} | wc -l" "5"
         new_test "## Verify Version 2 ... " 
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release-server | cut -d. -f1,2" $RHELV # to-do, pass this in
-	fi
+     fi
         
 	new_test "## Verify packager ... "
         file=/tmp/Packager

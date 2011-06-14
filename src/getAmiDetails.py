@@ -1,6 +1,8 @@
 from pprint import pprint
 from boto import ec2
+import boto
 import sys, time, optparse, os, paramiko
+from boto.ec2.blockdevicemapping import BlockDeviceMapping
 
 
 #def main(argv):
@@ -71,10 +73,17 @@ conn_region = region.connect()
 print conn_region
 
 #east# reservation = ec2conn.run_instances('ami-8c8a7de5', instance_type='t1.micro', key_name='cloude-key')
+#block_device_map
+#'/dev/sda=:20'
+
+blockDeviceMap = []
+blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
+
+
 if ARCH == 'i386':
-    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME)
+    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME, block_device_map=blockDeviceMap )
 elif ARCH == 'x86_64':
-    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name=SSHKEYNAME)
+    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name=SSHKEYNAME, block_device_map=blockDeviceMap )
 else:
     print "arch type is neither i386 or x86_64.. will exit"
     exit(1)
