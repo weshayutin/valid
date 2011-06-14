@@ -526,7 +526,7 @@ function test_gpg_keys()
 function test_IPv6()
 {
         new_test "## Verify IPv6 disabled ... "
-	assert "grep ^NETWORKING_IPV6= /etc/sysconfig/network" "1"
+	assert "grep ^NETWORKING_IPV6= /etc/sysconfig/network" "NETWORKING_IPV6=no"
 }
 
 function test_networking()
