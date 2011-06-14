@@ -129,7 +129,7 @@ test_group
 test_passwd
 test_inittab
 test_shells
-test_IPv6
+#test_IPv6 no longer needed
 test_networking
 test_iptables
 test_sshd
