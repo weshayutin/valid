@@ -678,6 +678,11 @@ function test_uname()
 
 }
 
+function resize2fs()
+{
+	resize2fs -p /dev/xvde1 10000M
+}
+
 function installTestKernel()
 {
 	new_test "## kernel-2.6.32-131.0.15.el6zero_x86_power"
