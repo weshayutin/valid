@@ -2,7 +2,9 @@ from pprint import pprint
 from boto import ec2
 import boto
 import sys, time, optparse, os, paramiko
-from boto.ec2.blockdevicemapping import BlockDeviceMapping
+#from boto.ec2.blockdevicemapping import BlockDeviceMapping
+from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping 
+
 
 
 #def main(argv):
@@ -76,14 +78,22 @@ print conn_region
 #block_device_map
 #'/dev/sda=:20'
 
-blockDeviceMap = []
-blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
+
+map = BlockDeviceMapping() 
+t = EBSBlockDeviceType()
+t.size = '15'
+#map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
+map['/dev/sda1'] = t  
+
+
+#blockDeviceMap = []
+#blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
 
 
 if ARCH == 'i386':
-    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME, block_device_map=blockDeviceMap )
+    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME, block_device_map=map )
 elif ARCH == 'x86_64':
-    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name=SSHKEYNAME, block_device_map=blockDeviceMap )
+    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name=SSHKEYNAME, block_device_map=map )
 else:
     print "arch type is neither i386 or x86_64.. will exit"
     exit(1)
