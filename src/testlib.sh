@@ -680,7 +680,7 @@ function test_uname()
 
 function resize2fs()
 {
-	resize2fs -p /dev/xvde1 10000M
+	resize2fs -p /dev/xvde1 15000M
 }
 
 function installTestKernel()

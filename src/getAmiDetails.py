@@ -90,10 +90,15 @@ map['/dev/sda1'] = t
 #blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
 
 
-if ARCH == 'i386':
+
+if ARCH == 'i386' and RHEL == '6.1':
     reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME, block_device_map=map )
+elif ARCH == 'x86_64' and RHEL == '6.1':
+    reservation = conn_region.run_instances(AMI, instance_type='m2.2xlarge', key_name=SSHKEYNAME, block_device_map=map )
+elif ARCH == 'i386':
+    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME )
 elif ARCH == 'x86_64':
-    reservation = conn_region.run_instances(AMI, instance_type='m1.large', key_name=SSHKEYNAME, block_device_map=map )
+    reservation = conn_region.run_instances(AMI, instance_type='m2.2xlarge', key_name=SSHKEYNAME )
 else:
     print "arch type is neither i386 or x86_64.. will exit"
     exit(1)
