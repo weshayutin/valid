@@ -730,6 +730,7 @@ function open_bugzilla()
 	 echo ""
 	else
          BUGZILLA=$BUG_NUM
+	 echo $BUGZILLA > /tmp/bugzilla
 	fi
 	echo "Adding log file contents to bugzilla"
 	BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
