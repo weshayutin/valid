@@ -321,7 +321,11 @@ function test_verify_rpms()
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
 	    cat $file >> $LOGFILE
 	    cat rpmVerifyTable >> $LOGFILE
-        assert "cat ${file} | wc -l" "5"
+	if [ $RHEL_FOUND == "6.0" ] ; then
+         assert "cat ${file} | wc -l" "4"
+	else
+         assert "cat ${file} | wc -l" "5"
+	fi
         new_test "## Verify Version 2 ... " 
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release-server | cut -d. -f1,2" $RHELV # to-do, pass this in
      fi
@@ -643,8 +647,8 @@ function test_uname()
 
 	new_test "## Verify latest installed kernel is running ... "
 	if [ $RHEL == 5 ] ; then
-	 echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | head -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`" >> $LOGFILE
-	 LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | head -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`
+	 echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`" >> $LOGFILE
+	 LATEST_RPM_KERNEL_VERSION=`rpm -q kernel-xen | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'`
 	 echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`" >> $LOGFILE
 	 CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`
 	 echo "assert latest rpm kernel = uname -r" >> $LOGFILE
