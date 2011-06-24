@@ -1,6 +1,6 @@
 from pprint import pprint
 from boto import ec2
-import boto
+import boto, thread
 import sys, time, optparse, os, paramiko
 #from boto.ec2.blockdevicemapping import BlockDeviceMapping
 from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping 
@@ -51,89 +51,134 @@ for m in mandatories:
         parser.print_help()
         exit(-1)
 
-print "+++++++"
-print AMI
-print REGION
-print SSHKEY
-print RHEL
-print "+++++++\n"
 
-conn = ec2.connection.EC2Connection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-regions = ec2.regions()
-print regions
 
-regionNum = 99
-for i in range(len(regions)):
-    thisRegion = str(regions[i])
-    myRegion =  "RegionInfo:"+REGION
-    if thisRegion == myRegion:
-        regionNum = i
 
-region = regions[regionNum]
-print region
-conn_region = region.connect()       
-print conn_region
-
+def getConnection(key,secretKey,REGION):
+    conn = ec2.connection.EC2Connection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+    regions = ec2.regions()
+    print regions
+    
+    regionNum = 99
+    for i in range(len(regions)):
+        thisRegion = str(regions[i])
+        myRegion =  "RegionInfo:"+REGION
+        if thisRegion == myRegion:
+            regionNum = i
+    
+    region = regions[regionNum]
+    print region
+    conn_region = region.connect()       
+    print conn_region
+    return conn_region
 #east# reservation = ec2conn.run_instances('ami-8c8a7de5', instance_type='t1.micro', key_name='cloude-key')
 #block_device_map
 #'/dev/sda=:20'
 
-
-map = BlockDeviceMapping() 
-t = EBSBlockDeviceType()
-t.size = '15'
-#map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
-map['/dev/sda1'] = t  
-
-
-#blockDeviceMap = []
-#blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
-
-
-
-if ARCH == 'i386' and RHEL == '6.1':
-    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME, block_device_map=map )
-elif ARCH == 'x86_64' and RHEL == '6.1':
-    reservation = conn_region.run_instances(AMI, instance_type='m2.2xlarge', key_name=SSHKEYNAME, block_device_map=map )
-elif ARCH == 'i386':
-    reservation = conn_region.run_instances(AMI, instance_type='c1.medium', key_name=SSHKEYNAME )
-elif ARCH == 'x86_64':
-    reservation = conn_region.run_instances(AMI, instance_type='m2.2xlarge', key_name=SSHKEYNAME )
-else:
-    print "arch type is neither i386 or x86_64.. will exit"
-    exit(1)
+def startInstance(ec2connection, hardwareProfile):
+    conn_region = ec2connection
+    map = BlockDeviceMapping() 
+    t = EBSBlockDeviceType()
+    t.size = '15'
+    #map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
+    map['/dev/sda1'] = t  
     
-myinstance = reservation.instances[0]
-
-time.sleep(5)
-while(not myinstance.update() == 'running'):
+    
+    #blockDeviceMap = []
+    #blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
+    
+    
+    
+    if ARCH == 'i386' and RHEL == '6.1':
+        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME, block_device_map=map )
+    elif ARCH == 'x86_64' and RHEL == '6.1':
+        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME, block_device_map=map )
+    elif ARCH == 'i386':
+        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME )
+    elif ARCH == 'x86_64':
+        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME )
+    else:
+        print "arch type is neither i386 or x86_64.. will exit"
+        exit(1)
+        
+    myinstance = reservation.instances[0]
+    
     time.sleep(5)
-    print myinstance.update()
+    while(not myinstance.update() == 'running'):
+        time.sleep(5)
+        print myinstance.update()
+        
+    instanceDetails = myinstance.__dict__
+    #pprint(instanceDetails)
+    #region = instanceDetails['placement']
+    #print 'region =' + region
+    publicDNS = instanceDetails['public_dns_name']
+    print 'public hostname = ' + publicDNS
+    print "sleep for 90 seconds"
+    time.sleep(130)
+    # check for console output here to make sure ssh is up
+    return publicDNS
+
+def executeValidScript(SSHKEY, publicDNS):    
+    filepath = "/home/whayutin/workspace/valid/src/*"
+    serverpath = "/root/valid/src"
+    commandPath = "/root/valid/src"
     
-instanceDetails = myinstance.__dict__
-#pprint(instanceDetails)
-#region = instanceDetails['placement']
-#print 'region =' + region
-publicDNS = instanceDetails['public_dns_name']
-print 'public hostname = ' + publicDNS
-print "sleep for 90 seconds"
-time.sleep(120)
-# check for console output here to make sure ssh is up
+    os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid/src")
+    
+    print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
+    os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
+    
+    
+    if BZ is None:
+        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS
+    else:
+        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ
+    print "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command+"/n"
+    os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
 
-filepath = "/home/whayutin/workspace/valid/src/*"
-serverpath = "/root/valid/src"
-commandPath = "/root/valid/src"
+def printValues(hwp):
+    print "+++++++"
+    print AMI
+    print REGION
+    print SSHKEY
+    print RHEL
+    print hwp
+    print "+++++++\n"
 
-os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid/src")
+def myfunction(string, sleeptime,lock,SSHKEY,publicDNS):
+        #entering critical section
+        lock.acquire() 
+        print string," Now Sleeping after Lock acquired for ",sleeptime
+        time.sleep(sleeptime) 
+        
+        print string," Now releasing lock and then sleeping again"
+        lock.release()
+        executeValidScript(SSHKEY, publicDNS)
+        #exiting critical section
+        time.sleep(sleeptime) # why?
+    
 
-print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
-os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
+
+hwp_i386 = ['t1.micro' , 'm1.small' , 'c1.medium']
+hwp_x86_64 = ['t1.micro' , 'm1.large' , 'm1.xlarge' , 'm2.xlarge' , 'm2.2xlarge' , 'm2.4xlarge' , 'c1.xlarge']
 
 
-if BZ is None:
-    command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS
-else:
-    command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ
-print "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command+"/n"
-os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
+publicDNS = []
 
+if ARCH == 'i386':
+    for hwp in hwp_i386:
+        printValues(hwp)
+        myConn = getConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION)
+        publicDNS.append(startInstance(myConn, hwp))
+        
+elif ARCH == 'x86_64':
+    for hwp in hwp_x86_64:
+        printValues(hwp)
+        myConn = getConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION)
+        publicDNS.append(startInstance(myConn, hwp))
+
+lock = thread.allocate_lock()
+
+for host in publicDNS:       
+    thread.start_new(myfunction("thread_"+host, 10, lock, SSHKEY, host))

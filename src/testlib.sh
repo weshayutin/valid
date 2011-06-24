@@ -321,10 +321,10 @@ function test_verify_rpms()
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
 	    cat $file >> $LOGFILE
 	    cat rpmVerifyTable >> $LOGFILE
-	if [ $RHEL_FOUND == "6.0" ] ; then
-         assert "cat ${file} | wc -l" "4"
-	else
+	if [[ $RHEL_FOUND == "6.1" ]] && [[ $UNAMEI == "x86_64" ]]  ; then
          assert "cat ${file} | wc -l" "5"
+	else
+         assert "cat ${file} | wc -l" "4"
 	fi
         new_test "## Verify Version 2 ... " 
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release-server | cut -d. -f1,2" $RHELV # to-do, pass this in
@@ -703,6 +703,12 @@ function test_grub()
 	assert "file /boot/grub/menu.lst  | grep symbolic | wc -l" "1"
 	assert "file /boot/grub/menu.lst  | grep grub.conf | wc -l" "1"
 	assert "cat /boot/grub/grub.conf  | grep \"(hd0,0)\" | wc -l" "0"
+}
+
+function test_memory()
+{
+	new_test "##Verify memory match hwp ... "
+	rc "cat /proc/meminfo | grep MemTotal: | awk '{print $2}'"
 }
 
 function sos_report()
