@@ -114,8 +114,8 @@ def startInstance(ec2connection, hardwareProfile):
     #print 'region =' + region
     publicDNS = instanceDetails['public_dns_name']
     print 'public hostname = ' + publicDNS
-    print "sleep for 90 seconds"
-    time.sleep(130)
+   
+    
     # check for console output here to make sure ssh is up
     return publicDNS
 
@@ -134,8 +134,9 @@ def executeValidScript(SSHKEY, publicDNS):
         command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS
     else:
         command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ
-    print "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command+"/n"
-    os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
+    print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
+    print ""
+    os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
 
 def printValues(hwp):
     print "+++++++"
@@ -154,7 +155,7 @@ def myfunction(string, sleeptime,lock,SSHKEY,publicDNS):
         
         print string," Now releasing lock and then sleeping again"
         lock.release()
-        executeValidScript(SSHKEY, publicDNS)
+        
         #exiting critical section
         time.sleep(sleeptime) # why?
     
@@ -179,6 +180,10 @@ elif ARCH == 'x86_64':
         publicDNS.append(startInstance(myConn, hwp))
 
 lock = thread.allocate_lock()
-
-for host in publicDNS:       
-    thread.start_new(myfunction("thread_"+host, 10, lock, SSHKEY, host))
+print "sleep for 30 seconds"
+time.sleep(30)
+for host in publicDNS:  
+    print "current working dir is"+os.getcwd()
+    os.chdir("/home/whayutin/workspace/valid/src")
+    print "current working dir is"+os.getcwd()
+    executeValidScript(SSHKEY, host)
