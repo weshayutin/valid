@@ -16,6 +16,7 @@
 # modified by kbidarka@redhat.com for RHEL 6
 
 FAILURES=0
+MEM_HWP=0
 
 function usage()
 {
@@ -35,6 +36,7 @@ function usage()
 	   echo "--bugzilla-username :: Please specify your bugzilla username@email.com"
 	   echo "--bugzilla-password :: Please specify your bugzilla password"
 	   echo "--bugzilla-num      :: If a bug has already been opened you can specify the number here "
+	   echo "--memory	     :: Minium total memory the system *should* have available"
 }
 
 
@@ -69,6 +71,9 @@ for i in $*
       --bugzilla-num=*)
 	  BUG_NUM="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
+      --memory=*)
+	  MEM_HWP="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
         *)
          # unknown option 
 	   usage
@@ -78,7 +83,7 @@ for i in $*
 done
 
 
-if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]]; then
+if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]] || [[ -z $MEM_HWP ]]; then
  usage
  exit 1
 fi
@@ -107,6 +112,7 @@ if [ $QUESTIONS == "no" ];then
 fi
 echo "##### START TESTS #####"
 echo ""
+test_memory
 test_uname
 test_disk_format
 test_disk_size

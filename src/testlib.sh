@@ -25,6 +25,7 @@ SYSDATE=$( /bin/date '+%Y-%m-%d %H:%M' )
 UNAMEI=$( /bin/uname -i )
 BETA=0
 
+
 echo ""
 echo ""
 
@@ -708,7 +709,16 @@ function test_grub()
 function test_memory()
 {
 	new_test "##Verify memory match hwp ... "
-	rc "cat /proc/meminfo | grep MemTotal: | awk '{print $2}'"
+	echo "cat /proc/meminfo | grep MemTotal: | awk '{print $2}'" >> $LOGFILE
+	MEM=`cat /proc/meminfo | grep "MemTotal:" | awk '{print $2}'`
+	echo "EXPECTED MINIMUM MEMORY = $MEM_HWP"
+	echo "MEMORY FOUND = $MEM"
+	if [[ $MEM -gt $MEM_HWP ]]; then
+	 echo "FOUND MEMORY OF $MEM > hwp MEMORY of $MEM_HWP" >> $LOGFILE
+	 assert "echo true"
+	else
+	 assert "echo false" "1"
+	fi	
 }
 
 function sos_report()

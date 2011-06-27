@@ -35,6 +35,7 @@ function usage()
 	   echo "--bugzilla-username :: Please specify your bugzilla username@email.com"
 	   echo "--bugzilla-password :: Please specify your bugzilla password"
 	   echo "--bugzilla-num      :: If a bug has already been opened you can specify the number here "
+	   echo "--memory            :: Minium total kb of  memory the system *should* have available "
 }
 
 
@@ -72,6 +73,9 @@ for i in $*
       --failures=*)
 	  FAILURES="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
+      --memory=*)
+	  MEM_HWP="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+          ;;
         *)
          # unknown option 
 	   usage
@@ -81,7 +85,7 @@ for i in $*
 done
 
 
-if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]]; then
+if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]] ; then
  usage
  exit 1
 fi
@@ -106,6 +110,7 @@ echo "##### START TESTS #####"
 echo ""
 test_yum_plugin
 test_uname
+test_memory
 print_rhel_version
 #installTestKernel
 
@@ -114,7 +119,7 @@ print_rhel_version
 show_failures
 open_bugzilla
 verify_bugzilla
-sos_report
+#sos_report
 im_exit
 ##################################
 
