@@ -656,13 +656,13 @@ function test_uname()
 	 assert "uname -r | sed 's/\(.*\)......./\1/'"  $LATEST_RPM_KERNEL_VERSION
 	else
 	 echo "RHEL VERSION IS $RHEL" >> $LOGFILE
-	 echo "LATEST_RPM_KERNEL_VERSION=`rpm -q kernel | sort -n | head -n 1 | cut -c 8-50 | sed 's/\(.*\).........../\1/'`" >> $LOGFILE
-	 LATEST_RPM_KERNEL_VERSION=`rpm -q kernel | sort -n | head -n 1 | cut -c 8-50 | sed 's/\(.*\).........../\1/'`
-	 echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\)......./\1/'`" >> $LOGFILE
-	 CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed 's/\(.*\).........../\1/'`
+	 echo "LATEST_RPM_KERNEL_VERSION=rpm -q kernel --last | head -n 1 |  cut -c 8-60 | cut -d ' ' -f 1" >> $LOGFILE
+	 LATEST_RPM_KERNEL_VERSION=`rpm -q kernel --last | head -n 1 |  cut -c 8-60 | cut -d ' ' -f 1`
+	 echo "CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed  's/\(.*\)...../\1/'`" >> $LOGFILE
+	 CURRENT_UNAME_KERNAL_VERSION=`uname -r | sed  's/\(.*\)...../\1/'`
 	 echo "assert latest rpm kernel = uname -r" >> $LOGFILE
          #assert "rpm -q kernel-xen | sort -n | tail -n 1 | cut -c 12-50| sed 's/\(.*\)..../\1/'"  $CURRENT_UNAME_KERNAL_VERSION
-	 assert "uname -r | sed 's/\(.*\).........../\1/'"  $LATEST_RPM_KERNEL_VERSION
+	 assert "uname -r | sed  's/\(.*\)...../\1/'"  $LATEST_RPM_KERNEL_VERSION
 	fi
  
 	new_test "## Verify latest kenerl is in /boot/grub/menu.1st ... "
