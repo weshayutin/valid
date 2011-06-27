@@ -88,7 +88,6 @@ def startInstance(ec2connection, hardwareProfile):
     #blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
     
     
-    
     if ARCH == 'i386' and RHEL == '6.1':
         reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME, block_device_map=map )
     elif ARCH == 'x86_64' and RHEL == '6.1':
@@ -119,7 +118,7 @@ def startInstance(ec2connection, hardwareProfile):
     # check for console output here to make sure ssh is up
     return publicDNS
 
-def executeValidScript(SSHKEY, publicDNS):    
+def executeValidScript(SSHKEY, publicDNS,hwp):    
     filepath = "/home/whayutin/workspace/valid/src/*"
     serverpath = "/root/valid/src"
     commandPath = "/root/valid/src"
@@ -133,9 +132,9 @@ def executeValidScript(SSHKEY, publicDNS):
     
     
     if BZ is None:
-        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS
+        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
     else:
-        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ
+        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ "--memory="+hwp["memory"]
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
     os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
@@ -160,11 +159,24 @@ def myfunction(string, sleeptime,lock,SSHKEY,publicDNS):
         
         #exiting critical section
         time.sleep(sleeptime) # why?
-    
+
+# Define hwp
+m1Small = {"name":"m1.small","memory":1700000,"cpu":1,"arch":"i386"}
+m1Large = {"name":"m1.large","memory":7500000,"cpu":2,"arch":"x86_64"}
+m1Xlarge = {"name":"m1.xlarge","memory":15000000,"cpu":4,"arch":"x86_64"}
+t1Micro = {"name":"t1.micro","memory":600000,"cpu":1,"arch":"both"}
+m2Xlarge = {"name":"m2.2xlarge","memory":17100000,"cpu":2,"arch":"x86_64"}
+m22Xlarge = {"name":"m2.2xlarge","memory":34200000,"cpu":4,"arch":"x86_64"}
+m24Xlarge = {"name":"m2.4xlarge","memory":68400000,"cpu":8,"arch":"x86_64"}
+c1Medium = {"name":"c1.medium","memory":1700000,"cpu":2,"arch":"i386"}
+c1Xlarge = {"name":"c1.xlarge","memory":7000000,"cpu":8,"arch":"x86_64"}   
 
 
-hwp_i386 = ['t1.micro' , 'm1.small' , 'c1.medium']
-hwp_x86_64 = ['t1.micro' , 'm1.large' , 'm1.xlarge' , 'm2.xlarge' , 'm2.2xlarge' , 'm2.4xlarge' , 'c1.xlarge']
+
+
+
+hwp_i386 = [t1Micro , m1Small , c1Medium]
+hwp_x86_64 = [t1Micro , m1Large , m1Xlarge , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
 
 
 publicDNS = []
@@ -173,19 +185,19 @@ if ARCH == 'i386':
     for hwp in hwp_i386:
         printValues(hwp)
         myConn = getConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION)
-        publicDNS.append(startInstance(myConn, hwp))
         
+              
 elif ARCH == 'x86_64':
     for hwp in hwp_x86_64:
         printValues(hwp)
         myConn = getConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION)
-        publicDNS.append(startInstance(myConn, hwp))
+        this_hostname = startInstance(myConn, hwp)
+        map = {"hostname":this_hostname,"hwp":hwp}
+        publicDNS.append(map)
 
 lock = thread.allocate_lock()
 print "sleep for 30 seconds"
 time.sleep(30)
 for host in publicDNS:  
-    print "current working dir is"+os.getcwd()
-    os.chdir("/home/whayutin/workspace/valid/src")
-    print "current working dir is"+os.getcwd()
-    executeValidScript(SSHKEY, host)
+
+    executeValidScript(SSHKEY, host["hostname"],host["hwp"])
