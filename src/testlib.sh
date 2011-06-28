@@ -779,6 +779,9 @@ function verify_bugzilla()
 	if [ $FAILURES == 0 ];then
           echo "MOVING BUG TO VERIFIED: test has $FAILURES failures"
 	  $BUGZILLACOMMAND modify --status="VERIFIED" $BUGZILLA	
+	else
+	   echo "MOVING BUG TO ON_QA: test has $FAILURES failures"
+	  $BUGZILLACOMMAND modify --status="ON_QA" $BUGZILLA	
 	fi
 
 }
