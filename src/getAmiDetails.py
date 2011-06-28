@@ -28,7 +28,9 @@ parser.add_option('-i','--ec2-key', type='string',dest='AWS_ACCESS_KEY_ID',help=
 parser.add_option('-p','--ec2-secret-key', type='string',dest='AWS_SECRET_ACCESS_KEY',help='EC2 Secret Access Key ID')
 parser.add_option('-y','--bugzilla_username', type='string',dest='BZUSER',help='bugzilla username')
 parser.add_option('-z','--bugzilla_password', type='string',dest='BZPASS',help='bugzilla password')
-parser.add_option('-m','--arch',  dest='ARCH', default='x86_64', help='arch = i386, or x86_64') #c1.medium
+parser.add_option('-m','--arch',  dest='ARCH', default='x86_64', help='arch = i386, or x86_64')
+parser.add_option('-x','--ignore',  dest='IGNORE', default='IGNORE', help='If set.. ignore the generated bug') #c1.medium
+
 
 
 (opts, args) = parser.parse_args()
@@ -43,6 +45,8 @@ AWS_SECRET_ACCESS_KEY = opts.AWS_SECRET_ACCESS_KEY
 BZUSER = opts.BZUSER
 BZPASS = opts.BZPASS
 ARCH = opts.ARCH
+IGNORE = opts.IGNORE
+
 
 mandatories = ['AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
 for m in mandatories:
@@ -132,9 +136,9 @@ def executeValidScript(SSHKEY, publicDNS,hwp):
     
     
     if BZ is None:
-        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
+        command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
     else:
-        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ "--memory="+hwp["memory"]
+        command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ "--memory="+hwp["memory"]
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
     os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)

@@ -726,6 +726,7 @@ function test_memory()
 	 echo "FOUND MEMORY OF $MEM > hwp MEMORY of $MEM_HWP" >> $LOGFILE
 	 assert "echo true"
 	else
+	 echo "FAILED!! FOUND MEMORY OF $MEM > hwp MEMORY of $MEM_HWP" >> $LOGFILE
 	 assert "echo false" "1"
 	fi	
 }
