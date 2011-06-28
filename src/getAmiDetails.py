@@ -191,8 +191,8 @@ c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 
 
 hwp_i386 = [t1Micro , m1Small , c1Medium]
-#hwp_x86_64 = [t1Micro , m1Large , m1Xlarge , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
-hwp_x86_64 = [m1Large]
+hwp_x86_64 = [t1Micro , m1Large , m1Xlarge , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
+
 
 
 publicDNS = []

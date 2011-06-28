@@ -112,7 +112,6 @@ if [ $QUESTIONS == "no" ];then
 fi
 echo "##### START TESTS #####"
 echo ""
-test_memory
 test_uname
 test_disk_format
 test_disk_size
