@@ -701,13 +701,8 @@ function installTestKernel()
 {
 	new_test "## install custom kernel"
 	#cat /proc/cpuinfo | grep nonstop_tsc >> $LOGFILE
-	if [ $UNAMEI == "i386" ]; then
-	 echo "rpm -ivh $PWD/kernel/*"
-	 rpm -ivh $PWD/kernel/i386/*
-	else
-	 echo "rpm -ivh $PWD/kernel/*"
-	 rpm -ivh $PWD/kernel/x86_64/*
-	fi
+	echo "yumlocalinstall -y /root/kernel/*" >> $LOGFILE
+	rc "yumlocalinstall -y  /root/kernel/* --nogpgheck"
 	
 	#cat /boot/grub/grub.conf > /boot/grub/menu.lst
 	#/bin/sed -i -e 's/(hd0,0)/(hd0)/' /boot/grub/menu.lst
