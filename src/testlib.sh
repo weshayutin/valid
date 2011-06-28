@@ -699,12 +699,18 @@ function resize2fs()
 
 function installTestKernel()
 {
-	new_test "## kernel-2.6.32-131.0.15.el6zero_x86_power"
-	cat /proc/cpuinfo | grep nonstop_tsc >> $LOGFILE
-	echo "rpm -ivh $PWD/kernel/*"
-	rpm -ivh $PWD/kernel/*
-	cat /boot/grub/grub.conf > /boot/grub/menu.lst
-	/bin/sed -i -e 's/(hd0,0)/(hd0)/' /boot/grub/menu.lst
+	new_test "## install custom kernel"
+	#cat /proc/cpuinfo | grep nonstop_tsc >> $LOGFILE
+	if [ $UNAMEI == "i386" ]; then
+	 echo "rpm -ivh $PWD/kernel/*"
+	 rpm -ivh $PWD/kernel/i386/*
+	else
+	 echo "rpm -ivh $PWD/kernel/*"
+	 rpm -ivh $PWD/kernel/x86_64/*
+	fi
+	
+	#cat /boot/grub/grub.conf > /boot/grub/menu.lst
+	#/bin/sed -i -e 's/(hd0,0)/(hd0)/' /boot/grub/menu.lst
 }
 
 function test_grub()
