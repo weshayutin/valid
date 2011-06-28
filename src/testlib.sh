@@ -702,7 +702,7 @@ function installTestKernel()
 	new_test "## install custom kernel"
 	#cat /proc/cpuinfo | grep nonstop_tsc >> $LOGFILE
 	echo "yumlocalinstall -y /root/kernel/*" >> $LOGFILE
-	rc "yum localinstall -y  /root/kernel/* --nogpgheck"
+	rc "yum localinstall -y  /root/kernel/* --nogpgcheck"
 	
 	#cat /boot/grub/grub.conf > /boot/grub/menu.lst
 	#/bin/sed -i -e 's/(hd0,0)/(hd0)/' /boot/grub/menu.lst
