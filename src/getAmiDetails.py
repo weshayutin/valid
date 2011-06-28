@@ -132,9 +132,9 @@ def executeValidScript(SSHKEY, publicDNS,hwp):
     
     
     if BZ is None:
-        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
+        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
     else:
-        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ "--memory="+hwp["memory"]
+        command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ "--memory="+hwp["memory"]
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
     os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
@@ -161,15 +161,15 @@ def myfunction(string, sleeptime,lock,SSHKEY,publicDNS):
         time.sleep(sleeptime) # why?
 
 # Define hwp
-m1Small = {"name":"m1.small","memory":1700000,"cpu":1,"arch":"i386"}
-m1Large = {"name":"m1.large","memory":7500000,"cpu":2,"arch":"x86_64"}
-m1Xlarge = {"name":"m1.xlarge","memory":15000000,"cpu":4,"arch":"x86_64"}
-t1Micro = {"name":"t1.micro","memory":600000,"cpu":1,"arch":"both"}
-m2Xlarge = {"name":"m2.2xlarge","memory":17100000,"cpu":2,"arch":"x86_64"}
-m22Xlarge = {"name":"m2.2xlarge","memory":34200000,"cpu":4,"arch":"x86_64"}
-m24Xlarge = {"name":"m2.4xlarge","memory":68400000,"cpu":8,"arch":"x86_64"}
-c1Medium = {"name":"c1.medium","memory":1700000,"cpu":2,"arch":"i386"}
-c1Xlarge = {"name":"c1.xlarge","memory":7000000,"cpu":8,"arch":"x86_64"}   
+m1Small = {"name":"m1.small","memory":"1700000","cpu":"1","arch":"i386"}
+m1Large = {"name":"m1.large","memory":"7500000","cpu":"2","arch":"x86_64"}
+m1Xlarge = {"name":"m1.xlarge","memory":"15000000","cpu":"4","arch":"x86_64"}
+t1Micro = {"name":"t1.micro","memory":"600000","cpu":"1","arch":"both"}
+m2Xlarge = {"name":"m2.2xlarge","memory":"17100000","cpu":"2","arch":"x86_64"}
+m22Xlarge = {"name":"m2.2xlarge","memory":"34200000","cpu":"4","arch":"x86_64"}
+m24Xlarge = {"name":"m2.4xlarge","memory":"68400000","cpu":"8","arch":"x86_64"}
+c1Medium = {"name":"c1.medium","memory":"1700000","cpu":"2","arch":"i386"}
+c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}   
 
 
 
@@ -185,13 +185,16 @@ if ARCH == 'i386':
     for hwp in hwp_i386:
         printValues(hwp)
         myConn = getConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION)
-        
-              
+        this_hostname = startInstance(myConn, hwp["name"])
+        map = {"hostname":this_hostname,"hwp":hwp}
+        publicDNS.append(map)
+
+                  
 elif ARCH == 'x86_64':
     for hwp in hwp_x86_64:
         printValues(hwp)
         myConn = getConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION)
-        this_hostname = startInstance(myConn, hwp)
+        this_hostname = startInstance(myConn, hwp["name"])
         map = {"hostname":this_hostname,"hwp":hwp}
         publicDNS.append(map)
 
