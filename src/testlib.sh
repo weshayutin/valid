@@ -297,18 +297,18 @@ function test_package_set()
 
 	cat /tmp/package_diff >>$LOGFILE
 	COUNT=`cat /tmp/package_diff | wc -l`
-	echo "COUNT=`cat /tmp/package_diff | wc -l`" >> $LOGFILE
+	echo "COUNT = `cat /tmp/package_diff | wc -l`" >> $LOGFILE
 	if [ $BETA == 1 ]; then
-		if [ $COUNT -gt 1 ]; then
+		if [ $COUNT == 1 ]; then
 	 		assert "cat /tmp/package_diff | wc -l" 1
 		else
 			assert "echo test failed" 1
 		fi
 	else
 		if [ $COUNT -gt 0 ]; then
-			 assert "cat /tmp/package_diff | wc -l" 0
-		else
 			assert "echo test failed" 1
+		else
+			assert "echo test passed" 0
 		fi
 	fi
 }

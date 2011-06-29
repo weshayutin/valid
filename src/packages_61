@@ -190,7 +190,6 @@ libattr
 libblkid
 libcap
 libcap-ng
-libcgroup
 libcollection
 libcom_err
 libcurl
