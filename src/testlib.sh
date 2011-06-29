@@ -803,7 +803,7 @@ function setup_rc.local()
 {
 	echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
 	echo "cd /root/valid/src" >> /etc/rc.local
-	echo "./image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES >> /var/log/messages" >> /etc/rc.local
+	echo "./image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES --memory=$MEM_HWP >> /var/log/messages" >> /etc/rc.local
 	cat /etc/rc.local >> $LOGFILE
 
 echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
