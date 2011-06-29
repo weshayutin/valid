@@ -215,8 +215,8 @@ elif ARCH == 'x86_64':
         publicDNS.append(map)
 
 lock = thread.allocate_lock()
-print "sleep for 30 seconds"
-time.sleep(90)
+print "sleep for 130 seconds"
+time.sleep(130)
 for host in publicDNS:  
 
     executeValidScript(SSHKEY, host["hostname"],host["hwp"])
