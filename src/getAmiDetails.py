@@ -30,6 +30,7 @@ parser.add_option('-y','--bugzilla_username', type='string',dest='BZUSER',help='
 parser.add_option('-z','--bugzilla_password', type='string',dest='BZPASS',help='bugzilla password')
 parser.add_option('-m','--arch',  dest='ARCH', default='x86_64', help='arch = i386, or x86_64')
 parser.add_option('-x','--ignore',  dest='IGNORE', default='IGNORE', help='If set.. ignore the generated bug') #c1.medium
+parser.add_option('-g','--noGit',dest='NOGIT', default=False, help='If set.. do not pull valid src from git, scp to each instance' )
 
 
 
@@ -46,6 +47,7 @@ BZUSER = opts.BZUSER
 BZPASS = opts.BZPASS
 ARCH = opts.ARCH
 IGNORE = opts.IGNORE
+NOGIT = opts.NOGIT
 
 
 mandatories = ['AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
@@ -127,24 +129,27 @@ def executeValidScript(SSHKEY, publicDNS,hwp):
     serverpath = "/root/valid/src"
     commandPath = "/root/valid/src"
     
-    #os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid/src")
-    os.system("ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" yum -y install git")
-    os.system("ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" git clone git://github.com/weshayutin/valid.git")
+    if NOGIT:
+        os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid/src")
+        print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
+        os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
+    else:
+        os.system("ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" yum -y install git")
+        os.system("ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" git clone git://github.com/weshayutin/valid.git")
     
-    #print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
-    #os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
+   
     
     # COPY KERNEL if there
-    #serverpath = "/root/kernel"
-    #os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/kernel")
-    #if ARCH == 'i386':
-    #    filepath = "/home/whayutin/workspace/valid/src/kernel/i386/*"
-    #    print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
-    #    os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
-    #if ARCH == 'x86_64':
-    #    filepath = "/home/whayutin/workspace/valid/src/kernel/x86_64/*"
-    #    print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
-    #    os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
+    serverpath = "/root/kernel"
+    os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/kernel")
+    if ARCH == 'i386':
+        filepath = "/home/whayutin/workspace/valid/src/kernel/i386/*"
+        print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
+        os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
+    if ARCH == 'x86_64':
+        filepath = "/home/whayutin/workspace/valid/src/kernel/x86_64/*"
+        print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
+        os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
     
     if BZ is None:
         command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
