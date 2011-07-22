@@ -704,7 +704,9 @@ function test_uname()
 
 function resize2fs()
 {
-	resize2fs -p /dev/xvde1 15000M
+	new_test "## Resize2fs ...."
+	rc "resize2fs -p /dev/xvde1 15000M"
+	assert "df -h | grep 13G | wc -l" "1"
 }
 
 function installTestKernel()
