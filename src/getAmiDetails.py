@@ -5,6 +5,8 @@ import sys, time, optparse, os, paramiko
 #from boto.ec2.blockdevicemapping import BlockDeviceMapping
 from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping 
 
+BASEDIR="/home/whayutin/workspace/valid/src"
+
 
 
 #def main(argv):
@@ -57,7 +59,7 @@ for m in mandatories:
         parser.print_help()
         exit(-1)
 
-
+os.system("cat /dev/null > "+BASEDIR+"/nohup.out")
 
 
 def getConnection(key,secretKey,REGION):
@@ -99,9 +101,9 @@ def startInstance(ec2connection, hardwareProfile):
     elif ARCH == 'x86_64' and RHEL == '6.1':
         reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME, block_device_map=map )
     elif ARCH == 'i386':
-        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME )
+        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME, block_device_map=map )
     elif ARCH == 'x86_64':
-        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME )
+        reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME, block_device_map=map)
     else:
         print "arch type is neither i386 or x86_64.. will exit"
         exit(1)
@@ -125,9 +127,10 @@ def startInstance(ec2connection, hardwareProfile):
     return publicDNS
 
 def executeValidScript(SSHKEY, publicDNS,hwp):    
-    filepath = "/home/whayutin/workspace/valid/src/*"
+    filepath = BASEDIR+"/*"
     serverpath = "/root/valid/src"
     commandPath = "/root/valid/src"
+    
     
     if NOGIT:
         os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid/src")
@@ -192,11 +195,13 @@ c1Medium = {"name":"c1.medium","memory":"1700000","cpu":"2","arch":"i386"}
 c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}   
 
 
-
-
-
+#Use all hwp types for ec2 memory tests, other hwp tests
 hwp_i386 = [t1Micro , m1Small , c1Medium]
 hwp_x86_64 = [t1Micro , m1Large , m1Xlarge , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
+
+#Use just one hwp for os tests
+#hwp_i386 = [c1Medium]
+#hwp_x86_64 = [m22Xlarge]
 
 
 

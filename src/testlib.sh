@@ -704,7 +704,14 @@ function test_uname()
 
 function resize2fs()
 {
-	resize2fs -p /dev/xvde1 15000M
+	new_test "## Verify resize2fs ... "
+	if [ $RHEL == 6 ] ; then
+	 rc "resize2fs -p /dev/xvde1 15000M"
+	fi
+	if [ $RHEL == 5 ] ; then
+	 rc "resize2fs -p /dev/sda1 15000M"
+	fi
+	assert "df -h | grep 13G | wc -l" "1"
 }
 
 function installTestKernel()

@@ -144,7 +144,8 @@ test_auditd
 test_sshSettings
 test_libc6-xen.conf
 test_grub
-installTestKernel
+#installTestKernel
+resize2fs
 
 
 ### DONT REMOVE OR COMMENT OUT ###
