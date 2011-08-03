@@ -115,6 +115,7 @@ echo ""
 test_uname
 test_disk_format
 test_disk_size
+test_swap_file
 test_selinux
 test_package_set
 test_verify_rpms

@@ -410,9 +410,28 @@ function test_bash_history()
 
 function test_swap_file()
 {
-	new_test "## Verify swap file ... "
-	swap=`cat swap_partitions`
-	assert "/sbin/swapoff $swap && /sbin/swapon $swap"
+	new_test "## Verify turning on/off swap file ... "
+	if [ $UNAMEI == "x86_64" ]; then
+	 swap=`cat swap_partitions`
+	 assert "/sbin/swapoff $swap && /sbin/swapon $swap"
+	fi
+
+	new_test "## Verify swap size ... "
+	if [ $UNAMEI == "x86_64" ]; then
+	 size=`free | grep Swap | awk '{print $2}'`
+	 echo "free | grep Swap | awk '{print $2}'" >> $LOGFILE
+         echo "swap size = $size" >> LOGFILE
+	 if [ $size -gt 0 ]; then
+	  assert "echo true" 
+         else 
+	  assert "echo false" "1"
+	 fi
+	fi 
+          	
+	if [ $UNAMEI == "i386" ]; then
+	 echo "no swap for i386 is expected" >> $LOGFILE
+	fi
+	
 }
 
 function test_system_id()
