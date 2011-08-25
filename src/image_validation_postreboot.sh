@@ -117,7 +117,7 @@ print_rhel_version
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
-open_bugzilla
+bugzilla_comments()
 verify_bugzilla
 #sos_report
 im_exit

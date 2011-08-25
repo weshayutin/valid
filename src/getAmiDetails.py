@@ -51,6 +51,8 @@ ARCH = opts.ARCH
 IGNORE = opts.IGNORE
 NOGIT = opts.NOGIT
 
+print 'BZ ='+str(BZ)
+
 
 mandatories = ['AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
 for m in mandatories:
@@ -116,7 +118,7 @@ def startInstance(ec2connection, hardwareProfile):
         print myinstance.update()
         
     instanceDetails = myinstance.__dict__
-    #pprint(instanceDetails)
+    pprint(instanceDetails)
     #region = instanceDetails['placement']
     #print 'region =' + region
     publicDNS = instanceDetails['public_dns_name']
@@ -126,7 +128,7 @@ def startInstance(ec2connection, hardwareProfile):
     # check for console output here to make sure ssh is up
     return publicDNS
 
-def executeValidScript(SSHKEY, publicDNS,hwp):    
+def executeValidScript(SSHKEY, publicDNS,hwp,BZ):    
     filepath = BASEDIR+"/*"
     serverpath = "/root/valid/src"
     commandPath = "/root/valid/src"
@@ -154,6 +156,7 @@ def executeValidScript(SSHKEY, publicDNS,hwp):
         print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
         os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
     
+    print 'BZ ='+str(BZ)
     if BZ is None:
         command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
     else:
@@ -161,6 +164,13 @@ def executeValidScript(SSHKEY, publicDNS,hwp):
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
     os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
+    
+    command = "ls /tmp/bugzilla"
+    result = os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
+    print result
+    command = "cat /tmp/bugzilla"
+    BZ = os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
+    print BZ
 
 def printValues(hwp):
     print "+++++++"
@@ -196,12 +206,12 @@ c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 
 
 #Use all hwp types for ec2 memory tests, other hwp tests
-hwp_i386 = [t1Micro , m1Small , c1Medium]
-hwp_x86_64 = [t1Micro , m1Large , m1Xlarge , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
+#hwp_i386 = [c1Medium, t1Micro , m1Small ]
+#hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
 
 #Use just one hwp for os tests
-#hwp_i386 = [c1Medium]
-#hwp_x86_64 = [m22Xlarge]
+hwp_i386 = [c1Medium]
+hwp_x86_64 = [m1Xlarge,m22Xlarge]
 
 
 
@@ -229,4 +239,4 @@ print "sleep for 130 seconds"
 time.sleep(130)
 for host in publicDNS:  
 
-    executeValidScript(SSHKEY, host["hostname"],host["hwp"])
+    executeValidScript(SSHKEY, host["hostname"],host["hwp"],BZ)

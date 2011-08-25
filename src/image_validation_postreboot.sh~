@@ -16,7 +16,6 @@
 # modified by kbidarka@redhat.com for RHEL 6
 
 FAILURES=0
-MEM_HWP=0
 
 function usage()
 {
@@ -36,7 +35,7 @@ function usage()
 	   echo "--bugzilla-username :: Please specify your bugzilla username@email.com"
 	   echo "--bugzilla-password :: Please specify your bugzilla password"
 	   echo "--bugzilla-num      :: If a bug has already been opened you can specify the number here "
-	   echo "--memory	     :: Minium total memory the system *should* have available"
+	   echo "--memory            :: Minium total kb of  memory the system *should* have available "
 }
 
 
@@ -71,9 +70,12 @@ for i in $*
       --bugzilla-num=*)
 	  BUG_NUM="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
+      --failures=*)
+	  FAILURES="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
       --memory=*)
 	  MEM_HWP="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
-	  ;;
+          ;;
         *)
          # unknown option 
 	   usage
@@ -83,20 +85,15 @@ for i in $*
 done
 
 
-if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]] || [[ -z $MEM_HWP ]]; then
+if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]] ; then
  usage
  exit 1
 fi
 
 
 
-pushd /root/valid/src
-source $PWD/testlib.sh
 
-### DONT REMOVE OR COMMENT OUT ###
-echo "opening a bugzilla for logging purposes"
-open_bugzilla
-##################################
+source $PWD/testlib.sh
 
 echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
 echo " This script will run through some basic sanity tests for a Red Hat Enterprise Linux image "
@@ -107,66 +104,24 @@ echo "***************** DETAILED RESULTS LOGGED TO validate.log  ***************
 echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
 echo "" 
 echo ""
-test_rhel_version
+postReboot
 echo ""
-if [ $QUESTIONS == "no" ];then
- userInput_CloudProvider
- userInput_Filesystem
- userInput_Errata_Notification
- userInput_Availability
-fi
 echo "##### START TESTS #####"
 echo ""
-test_uname
-test_disk_format
-test_disk_size
-test_swap_file
-test_selinux
-test_package_set
-test_verify_rpms
-test_gpg_keys
-#test_repos #remarking this out for now.. until additional repo's land. the yum tests should be sufficient
 test_yum_plugin
-if [ $yum_test == "yes" ];then
- test_yum_full_test
-else
- test_yum_general_test
-fi
-test_bash_history
-test_system_id
-test_cloud-firstboot
-test_nameserver
-test_group
-test_passwd
-test_inittab
-test_shells
-#test_IPv6 no longer needed
-test_networking
-test_iptables
-test_sshd
-test_chkconfig
-test_syslog
-test_auditd
-test_sshSettings
-test_libc6-xen.conf
-test_grub
+test_uname
+test_memory
+print_rhel_version
 #installTestKernel
-resize2fs
 
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
 open_bugzilla
-bugzilla_comments
-setup_rc.local
+bugzilla_comments()
+verify_bugzilla
 #sos_report
-echo "REBOOTING"
-sleep 1
-echo "REBOOTING"
-sleep 1
-echo "REBOOTING"
-reboot
-#im_exit
+im_exit
 ##################################
 
 
