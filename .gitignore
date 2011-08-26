@@ -3,3 +3,4 @@ src/test.csv
 src/kernel
 src/nohup.out
 src/bugzillaTest.py
+src/boto
