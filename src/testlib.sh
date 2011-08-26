@@ -804,10 +804,17 @@ function open_bugzilla()
 function bugzilla_comments()
 {
 	echo "Adding log file contents to bugzilla"
-	BUG_COMMENTS01=`head -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
-        BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 2) ${LOGFILE}`
-        $BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS01}"
-        $BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS02}"
+	split ${LOGFILE} -l 200 splitValid.log
+
+ 	for part in $(ls splitValid.log*);do
+	 BUG_COMMENTS=`cat $part`
+         $BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS}"
+	done
+        #BUG_COMMENTS02=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 3) ${LOGFILE}`
+        #BUG_COMMENTS03=`tail -n $(expr $(cat ${LOGFILE} | wc -l ) / 3) ${LOGFILE}`
+        #$BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS01}"
+        #$BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS02}"
+        #$BUGZILLACOMMAND modify $BUGZILLA -l "${BUG_COMMENTS03}"
 
 	echo "Finished with the bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=$BUGZILLA"
 
