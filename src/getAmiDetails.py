@@ -6,7 +6,7 @@ import sys, time, optparse, os
 from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping
 from bugzilla.bugzilla3 import Bugzilla36
 
-BASEDIR="/home/whayutin/workspace/valid/src"
+
 
 
 
@@ -34,6 +34,7 @@ parser.add_option('-z','--bugzilla_password', type='string',dest='BZPASS',help='
 parser.add_option('-m','--arch',  dest='ARCH', default='x86_64', help='arch = i386, or x86_64')
 parser.add_option('-x','--ignore',  dest='IGNORE', default='IGNORE', help='If set.. ignore the generated bug') #c1.medium
 parser.add_option('-g','--noGit',dest='NOGIT', default=False, help='If set.. do not pull valid src from git, scp to each instance' )
+parser.add_option('-d','--baseDir',dest='BASEDIR',type='string',help='the dir of the src checkout ie.. ~/workspace/valid/src')
 
 
 
@@ -51,11 +52,12 @@ BZPASS = opts.BZPASS
 ARCH = opts.ARCH
 IGNORE = opts.IGNORE
 NOGIT = opts.NOGIT
+BASEDIR = opts.BASEDIR
 
 
 
 
-mandatories = ['AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
+mandatories = ['BASEDIR','AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
 for m in mandatories:
     if not opts.__dict__[m]:
         print "mandatory option is missing\n"
@@ -163,11 +165,11 @@ def executeValidScript(SSHKEY, publicDNS,hwp,BZ):
     serverpath = "/root/kernel"
     os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/kernel")
     if ARCH == 'i386':
-        filepath = "/home/whayutin/workspace/valid/src/kernel/i386/*"
+        filepath = BASEDIR+"/kernel/i386/*"
         print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
         os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
     if ARCH == 'x86_64':
-        filepath = "/home/whayutin/workspace/valid/src/kernel/x86_64/*"
+        filepath = BASEDIR+"/kernel/x86_64/*"
         print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
         os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
     
