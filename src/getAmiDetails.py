@@ -1,3 +1,5 @@
+#!/usr/bin/python -tt
+
 from pprint import pprint
 from boto import ec2
 import boto, thread
@@ -5,10 +7,6 @@ import sys, time, optparse, os
 #from boto.ec2.blockdevicemapping import BlockDeviceMapping
 from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping
 from bugzilla.bugzilla3 import Bugzilla36
-
-
-
-
 
 #def main(argv):
 #    try:
