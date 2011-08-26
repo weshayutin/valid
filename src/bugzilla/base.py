@@ -19,8 +19,14 @@ import base64
 import tempfile
 import logging
 import locale
-import email.utils
-from email.header import decode_header
+
+# Python 2.4 compatibility
+try:
+    import email.utils as email_utils
+    from email.header import decode_header
+except ImportError:
+    import email.Utils as email_utils
+    from email.Header import decode_header
 
 log = logging.getLogger('bugzilla')
 
@@ -63,7 +69,7 @@ def replace_getbug_errors_with_None(rawlist):
 def decode_rfc2231_value(val):
     # BUG WORKAROUND: decode_header doesn't work unless there's whitespace
     # around the encoded string (see http://bugs.python.org/issue1079)
-    val = email.utils.ecre.sub(' \g<0> ', val) # Workaround: add whitespace
+    val = email_utils.ecre.sub(' \g<0> ', val) # Workaround: add whitespace
     val = val.strip('"') # remove quotes
     return ''.join(f[0].decode(f[1] or 'us-ascii') for f in decode_header(val))
 
