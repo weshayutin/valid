@@ -151,7 +151,7 @@ test_sshSettings
 test_libc6-xen.conf
 test_grub
 #installTestKernel
-resize2fs
+#resize2fs
 
 
 ### DONT REMOVE OR COMMENT OUT ###
