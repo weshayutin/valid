@@ -214,12 +214,12 @@ c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 
 
 #Use all hwp types for ec2 memory tests, other hwp tests
-#hwp_i386 = [c1Medium, t1Micro , m1Small ]
-#hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
+hwp_i386 = [c1Medium, t1Micro , m1Small ]
+hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
 
 #Use just one hwp for os tests
-hwp_i386 = [c1Medium]
-hwp_x86_64 = [m1Xlarge,m22Xlarge]
+#hwp_i386 = [c1Medium]
+#hwp_x86_64 = [m1Xlarge,m22Xlarge]
 
 
 
