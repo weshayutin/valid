@@ -79,23 +79,13 @@ file.close()
 os.system("cat /dev/null > "+BASEDIR+"/nohup.out")
 
 
-def getConnection(key,secretKey,REGION):
-    conn = ec2.connection.EC2Connection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-    regions = ec2.regions()
-    print regions
-    
-    regionNum = 99
-    for i in range(len(regions)):
-        thisRegion = str(regions[i])
-        myRegion =  "RegionInfo:"+REGION
-        if thisRegion == myRegion:
-            regionNum = i
-    
-    region = regions[regionNum]
-    print region
-    conn_region = region.connect()       
-    print conn_region
-    return conn_region
+def getConnection(key, secret, region):
+    """establish a connection with ec2"""
+    reg = boto.ec2.get_region(region, aws_access_key_id=key,
+        aws_secret_access_key=secret)
+    return reg.connect(
+        aws_access_key_id=key, aws_secret_access_key=secret)
+
 #east# reservation = ec2conn.run_instances('ami-8c8a7de5', instance_type='t1.micro', key_name='cloude-key')
 #block_device_map
 #'/dev/sda=:20'
