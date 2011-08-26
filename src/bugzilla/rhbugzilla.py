@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2008, 2009 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 2 of the License, or (at your
@@ -10,7 +10,7 @@
 # the full text of the license.
 
 import bugzilla.base
-from bugzilla3 import Bugzilla34
+from bugzilla.bugzilla3 import Bugzilla3, Bugzilla34
 import copy, xmlrpclib
 
 class RHBugzilla(bugzilla.base.BugzillaBase):
@@ -22,10 +22,10 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     be safe for multicall use.
 
     Documentation for most of these methods can be found here:
-    https://bugzilla.redhat.com/docs/en/html/api/extensions/compat_xmlrpc/code/webservice.html
+    https://bugzilla.redhat.com/docs/en/html/api/extensions/RedHat/lib/WebService/CompatBugzilla.html
     '''
 
-    version = '0.2'
+    version = '0.3'
     user_agent = bugzilla.base.user_agent + ' RHBugzilla/%s' % version
 
     def __init__(self,**kwargs):
@@ -43,10 +43,10 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         # That's funny, since we get a (session-based) login cookie...
         return True
 
-    #---- Methods and properties with basic bugzilla info 
+    #---- Methods and properties with basic bugzilla info
 
     def _multicall(self):
-        '''This returns kind of a mash-up of the Bugzilla object and the 
+        '''This returns kind of a mash-up of the Bugzilla object and the
         xmlrpclib.MultiCall object. Methods you call on this object will be
         added to the MultiCall queue, but they will return None. When you're
         ready, call the run() method and all the methods in the queue will be
@@ -91,7 +91,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         r = self._proxy.bugzilla.getProdInfo()
         n = 0
         prod = []
-        for name,desc in r.iteritems(): 
+        for name,desc in r.iteritems():
             # We're making up a fake id, since RHBugzilla doesn't use them
             prod.append({'id':n,'name':name,'description':desc})
             n += 1
@@ -104,28 +104,28 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         if type(product) == int:
             product = self._product_id_to_name(product)
         return self._proxy.bugzilla.getProdCompDetails(product)
-    def _get_info(self,product=None): 
-        '''This is a convenience method that does getqueryinfo, getproducts, 
-        and (optionally) getcomponents in one big fat multicall. This is a bit 
-        faster than calling them all separately. 
+    def _get_info(self,product=None):
+        '''This is a convenience method that does getqueryinfo, getproducts,
+        and (optionally) getcomponents in one big fat multicall. This is a bit
+        faster than calling them all separately.
 
-        If you're doing interactive stuff you should call this, with the 
-        appropriate product name, after connecting to Bugzilla. This will 
-        cache all the info for you and save you an ugly delay later on.''' 
-        mc = self._multicall() 
-        mc._getqueryinfo() 
-        mc._getproducts() 
-        mc._getbugfields() 
-        if product: 
-            mc._getcomponents(product) 
-            mc._getcomponentsdetails(product) 
-        r = mc.run() 
-        (self._querydata,self._querydefaults) = r.pop(0) 
-        self._products = r.pop(0) 
-        self._bugfields = r.pop(0) 
-        if product: 
-            self._components[product] = r.pop(0) 
-            self._components_details[product] = r.pop(0) 
+        If you're doing interactive stuff you should call this, with the
+        appropriate product name, after connecting to Bugzilla. This will
+        cache all the info for you and save you an ugly delay later on.'''
+        mc = self._multicall()
+        mc._getqueryinfo()
+        mc._getproducts()
+        mc._getbugfields()
+        if product:
+            mc._getcomponents(product)
+            mc._getcomponentsdetails(product)
+        r = mc.run()
+        (self._querydata,self._querydefaults) = r.pop(0)
+        self._products = r.pop(0)
+        self._bugfields = r.pop(0)
+        if product:
+            self._components[product] = r.pop(0)
+            self._components_details[product] = r.pop(0)
 
     #---- Methods for reading bugs and bug info
 
@@ -169,13 +169,13 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         Returns a dict like this: {'bugs':buglist,
                                    'displaycolumns':columnlist,
                                    'sql':querystring}
-        buglist is a list of dicts describing bugs. You can specify which 
+        buglist is a list of dicts describing bugs. You can specify which
         columns/keys will be listed in the bugs by setting 'column_list' in
         the query; otherwise the default columns are used (see the list in
         querydefaults['default_column_list']). The list of columns will be
         in 'displaycolumns', and the SQL query used by this query will be in
-        'sql'. 
-        ''' 
+        'sql'.
+        '''
         return self._proxy.bugzilla.runQuery(query)
 
     #---- Methods for modifying existing bugs.
@@ -186,7 +186,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
 
     def _addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
-        '''Add a comment to the bug with the given ID. Other optional 
+        '''Add a comment to the bug with the given ID. Other optional
         arguments are as follows:
             private:   if True, mark this comment as private.
             timestamp: comment timestamp, in the form "YYYY-MM-DD HH:MM:SS"
@@ -215,33 +215,33 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         closeBug($bugid, $new_resolution, $username, $password, $dupeid,
             $new_fixed_in, $comment, $isprivate, $private_in_it, $nomail)
 
-        Close a current Bugzilla bug report with a specific resolution. This will eventually be done in Bugzilla/Bug.pm 
+        Close a current Bugzilla bug report with a specific resolution. This will eventually be done in Bugzilla/Bug.pm
         instead and is meant to only be a quick fix. Please use bugzilla.changesStatus to changed to an opened state.
         This method will change the bug report's status to CLOSED.
 
-            $bugid 
+            $bugid
                 # ID of bug report to add comment to.
             $new_resolution
-                # Valid Bugzilla resolution to transition the report into. 
+                # Valid Bugzilla resolution to transition the report into.
                 # DUPLICATE requires $dupeid to be passed in.
             $dupeid
-                # Bugzilla report ID that this bug is being closed as 
-                # duplicate of. 
+                # Bugzilla report ID that this bug is being closed as
+                # duplicate of.
                 # Requires $new_resolution to be DUPLICATE.
             $new_fixed_in
-                # OPTIONAL String representing version of product/component 
+                # OPTIONAL String representing version of product/component
                 # that bug is fixed in.
             $comment
                 # OPTIONAL Text string containing comment to add.
             $isprivate
-                # OPTIONAL Whether the comment will be private to the 
-                # 'private_comment' Bugzilla group. 
+                # OPTIONAL Whether the comment will be private to the
+                # 'private_comment' Bugzilla group.
                 # Default: false
-            $private_in_it 
-                # OPTIONAL if true will make the comment private in 
+            $private_in_it
+                # OPTIONAL if true will make the comment private in
                 # Issue Tracker
                 # Default: follows $isprivate
-            $nomail 
+            $nomail
                 # OPTIONAL Flag that is either 1 or 0 if you want email to be sent or not for this change
         '''
         return self._proxy.bugzilla.closeBug(id,resolution,self.user,'',
@@ -268,7 +268,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         # Massage input to match what RHBZ expects
         if action == 'delete':
             action == 'remove'
-        data = {'id':id, 'action':action, 'blocked':'', 'dependson':''} 
+        data = {'id':id, 'action':action, 'blocked':'', 'dependson':''}
         for b in blocked:
             data['blocked'] = b
             self._proxy.bugzilla.updateDepends(id,data)
@@ -293,7 +293,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         return self._proxy.bugzilla.updateCC(data)
     def _updatewhiteboard(self,id,text,which,action,comment,private):
         '''Update the whiteboard given by 'which' for the given bug.
-        performs the given action (which may be 'append',' prepend', or 
+        performs the given action (which may be 'append',' prepend', or
         'overwrite') using the given text.'''
         data = {'type':which,'text':text,'action':action}
         if comment is not None:
@@ -316,7 +316,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
 
     # If your bugzilla wants attachments in something other than base64, you
     # should override _attachment_encode here.
-    # If your bugzilla uses non-standard paths for attachment.cgi, you'll 
+    # If your bugzilla uses non-standard paths for attachment.cgi, you'll
     # want to override _attachment_uri here.
 
     def _attachfile(self,id,**attachdata):
@@ -402,22 +402,13 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
             r = [i['internals'] for i in raw_results['bugs']]
         return r
 
+    # This can be removed once RHBZ supports BZ3.6's Bug.fields() method
     _getbugfields = RHBugzilla._getbugfields
-
-    def _query(self,query):
-        '''Query bugzilla and return a list of matching bugs.
-        query must be a dict with fields like those in in querydata['fields'].
-        You can also pass in keys called 'quicksearch' or 'savedsearch' - 
-        'quicksearch' will do a quick keyword search like the simple search
-        on the Bugzilla home page. 
-        'savedsearch' should be the name of a previously-saved search to
-        execute. You need to be logged in for this to work.
-        Returns a dict like this: {'bugs':buglist,
-                                   'sql':querystring}
-        buglist is a list of dicts describing bugs, and 'sql' contains the SQL
-        generated by executing the search.
-        ''' 
-        return self._proxy.Bug.search(query)
+    # Use the upstream versions of these methods rather than the RHBZ ones
+    _query = Bugzilla34._query
+    # This can be activated once Bug.get() returns all the data that
+    # RHBZ's getBug() does.
+    #_getbugs = Bugzilla3._getbugs # Also _getbug, _getbugsimple, etc.
 
     #---- Methods for updating bugs.
 
@@ -430,6 +421,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
         # TODO document changeable fields & return values
         # TODO I think we need to catch XMLRPC exceptions to get a useful
         # return value
+        # NOTE: this will be moved to upstream Bugzilla someday
         return self._proxy.Bug.update({'ids':ids,'updates':updates})
 
     def _update_bug(self,id,updates):
@@ -439,7 +431,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
 
     # Eventually - when RHBugzilla is well and truly obsolete - we'll delete
     # all of these methods and refactor the Base Bugzilla object so all the bug
-    # modification calls go through _update_bug. 
+    # modification calls go through _update_bug.
     # Until then, all of these methods are basically just wrappers around it.
 
     # TODO: allow multiple bug IDs
@@ -515,7 +507,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
 
     def _updatewhiteboard(self,id,text,which,action,comment,private):
         '''Update the whiteboard given by 'which' for the given bug.
-        performs the given action (which may be 'append',' prepend', or 
+        performs the given action (which may be 'append',' prepend', or
         'overwrite') using the given text.
 
         RHBZ3 Bug.update() only supports overwriting, so append/prepend

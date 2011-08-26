@@ -3,7 +3,8 @@ from boto import ec2
 import boto, thread
 import sys, time, optparse, os, paramiko
 #from boto.ec2.blockdevicemapping import BlockDeviceMapping
-from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping 
+from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping
+from bugzilla.bugzilla3 import Bugzilla36
 
 BASEDIR="/home/whayutin/workspace/valid/src"
 
@@ -51,7 +52,7 @@ ARCH = opts.ARCH
 IGNORE = opts.IGNORE
 NOGIT = opts.NOGIT
 
-print 'BZ ='+str(BZ)
+
 
 
 mandatories = ['AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
@@ -60,6 +61,20 @@ for m in mandatories:
         print "mandatory option is missing\n"
         parser.print_help()
         exit(-1)
+        
+if BZ is None:
+    print "**** No bugzilla # was passed, will open one here ****"
+    bugzilla=Bugzilla36(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=BZUSER,password=BZPASS)
+    mySummary=AMI+" "+RHEL+" "+ARCH+" "+REGION
+    BZ_Object=bugzilla.createbug(product="Cloud Image Validation",component="images",version="RHEL6.1",rep_platform="x86_64",summary=mySummary)
+    BZ = str(BZ_Object.bug_id)
+    print "Buzilla # = https://bugzilla.redhat.com/show_bug.cgi?id="+ BZ
+else:
+    print "Already opened Buzilla # = https://bugzilla.redhat.com/show_bug.cgi?id="+ BZ
+
+file = open('/tmp/buzilla',"w")
+file.write(BZ)
+file.close()
 
 os.system("cat /dev/null > "+BASEDIR+"/nohup.out")
 
@@ -156,21 +171,14 @@ def executeValidScript(SSHKEY, publicDNS,hwp,BZ):
         print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"/n"
         os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
     
-    print 'BZ ='+str(BZ)
-    if BZ is None:
-        command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+ " --memory="+hwp["memory"]
-    else:
-        command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]
+   
+
+    command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
     os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
     
-    command = "ls /tmp/bugzilla"
-    result = os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
-    print result
-    command = "cat /tmp/bugzilla"
-    BZ = os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
-    print BZ
+    
 
 def printValues(hwp):
     print "+++++++"

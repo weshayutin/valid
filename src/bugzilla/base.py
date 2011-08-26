@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2007, 2008, 2009, 2010 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 2 of the License, or (at your
@@ -19,10 +19,12 @@ import base64
 import tempfile
 import logging
 import locale
+import email.utils
+from email.header import decode_header
 
 log = logging.getLogger('bugzilla')
 
-version = '0.6.1'
+version = '0.6.2'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 
@@ -44,7 +46,7 @@ class LoadError(BugzillaError):
     pass
 
 def replace_getbug_errors_with_None(rawlist):
-    '''r is a raw xmlrpc response. 
+    '''r is a raw xmlrpc response.
     If it represents an error, None is returned.
     Otherwise, r is returned.
     This is mostly used for XMLRPC Multicall handling.'''
@@ -57,6 +59,13 @@ def replace_getbug_errors_with_None(rawlist):
         else:
             result.append(None)
     return result
+
+def decode_rfc2231_value(val):
+    # BUG WORKAROUND: decode_header doesn't work unless there's whitespace
+    # around the encoded string (see http://bugs.python.org/issue1079)
+    val = email.utils.ecre.sub(' \g<0> ', val) # Workaround: add whitespace
+    val = val.strip('"') # remove quotes
+    return ''.join(f[0].decode(f[1] or 'us-ascii') for f in decode_header(val))
 
 class BugzillaBase(object):
     '''An object which represents the data and methods exported by a Bugzilla
@@ -75,7 +84,7 @@ class BugzillaBase(object):
       [bugzilla.yoursite.com]
       user = username
       password = password
-    You can also use the [DEFAULT] section to set defaults that apply to 
+    You can also use the [DEFAULT] section to set defaults that apply to
     any site without a specific section of its own.
     Be sure to set appropriate permissions on bugzillarc if you choose to
     store your password in it!
@@ -105,7 +114,6 @@ class BugzillaBase(object):
             self._cookiefile = None
         else:
             self._cookiefile = True
-        self._persist_cookie = True
         self.cookiefile = cookiefile
 
         self.user_agent = user_agent
@@ -115,9 +123,6 @@ class BugzillaBase(object):
         if url:
             self.connect(url)
 
-    def __del__(self):
-        del self.cookiefile
-
     def init_private_data(self):
         '''initialize private variables used by this bugzilla instance.'''
         self._proxy      = None
@@ -125,7 +130,7 @@ class BugzillaBase(object):
         self._opener     = None
         self._querydata  = None
         self._querydefaults = None
-        self._products   = None 
+        self._products   = None
         self._bugfields  = None
         self._components = dict()
         self._components_details = dict()
@@ -165,17 +170,17 @@ class BugzillaBase(object):
         cj = cookielib.LWPCookieJar(self._cookiefile)
 
         if not self._cookiefile:
-            self._persist_cookie = False
             # Create a temporary cookie file
-            fh, self._cookiefile = tempfile.mkstemp()
-            os.close(fh)
+            tmpfile = tempfile.NamedTemporaryFile(prefix="python-bugzilla.")
+            self._cookiefile = tmpfile.name
+            # NOTE: tmpfile only exists as long as we have a reference to it!
+            self._cookiefobj = tmpfile
             try:
                 cj.save(self._cookiefile)
             except Exception, e:
                 log.warn("Couldn't initialize temporary cookiefile%s: %s" %
                         (self._cookiefile, str(e)))
         else:
-            self._persist_cookie = True
             if os.path.exists(self._cookiefile):
                 cj = self._loadcookies(cj)
             else:
@@ -192,10 +197,8 @@ class BugzillaBase(object):
         self._cookiejar.filename = self._cookiefile
 
     def _delcookiefile(self):
-        if not self._persist_cookie:
-            # If it's a temporary file, remove it
-            os.remove(self.cookiefile)
         self._cookiefile = None
+        self._cookiefobj = None # makes NamedTemporaryFile delete itself
         self._cookiejar = None
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
@@ -243,7 +246,7 @@ class BugzillaBase(object):
 
     def connect(self,url):
         '''Connect to the bugzilla instance with the given url.
-        
+
         This will also read any available config files (see readconfig()),
         which may set 'user' and 'password'.
 
@@ -254,7 +257,7 @@ class BugzillaBase(object):
         if url.startswith('https'):
             self._transport = SafeCookieTransport()
         else:
-            self._transport = CookieTransport() 
+            self._transport = CookieTransport()
         self._transport.user_agent = self.user_agent
         self._transport.cookiejar = self._cookiejar
         # Set up the proxy, using the transport
@@ -282,13 +285,13 @@ class BugzillaBase(object):
 
     def login(self,user=None,password=None):
         '''Attempt to log in using the given username and password. Subsequent
-        method calls will use this username and password. Returns False if 
+        method calls will use this username and password. Returns False if
         login fails, otherwise returns some kind of login info - typically
-        either a numeric userid, or a dict of user info. It also sets the 
+        either a numeric userid, or a dict of user info. It also sets the
         logged_in attribute to True, if successful.
 
         If user is not set, the value of Bugzilla.user will be used. If *that*
-        is not set, ValueError will be raised. 
+        is not set, ValueError will be raised.
 
         This method will be called implicitly at the end of connect() if user
         and password are both set. So under most circumstances you won't need
@@ -303,8 +306,8 @@ class BugzillaBase(object):
             raise ValueError, "missing username"
         if not self.password:
             raise ValueError, "missing password"
-           
-        try: 
+
+        try:
             r = self._login(self.user,self.password)
             self.logged_in = True
             log.info("login successful - dropping password from memory")
@@ -326,7 +329,7 @@ class BugzillaBase(object):
         self.password = ''
         self.logged_in  = False
 
-    #---- Methods and properties with basic bugzilla info 
+    #---- Methods and properties with basic bugzilla info
 
     def _getbugfields(self):
         '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
@@ -382,11 +385,11 @@ class BugzillaBase(object):
 
     def getproducts(self,force_refresh=False):
         '''Get product data: names, descriptions, etc.
-        The data varies between Bugzilla versions but the basic format is a 
+        The data varies between Bugzilla versions but the basic format is a
         list of dicts, where the dicts will have at least the following keys:
         {'id':1,'name':"Some Product",'description':"This is a product"}
 
-        Any method that requires a 'product' can be given either the 
+        Any method that requires a 'product' can be given either the
         id or the name.'''
         if force_refresh or not self._products:
             self._products = self._getproducts()
@@ -401,11 +404,13 @@ class BugzillaBase(object):
         for p in self.products:
             if p['id'] == productid:
                 return p['name']
+        raise ValueError, 'No product with id #%i' % productid
     def _product_name_to_id(self,product):
         '''Convert a product name (str) to a product ID (int).'''
         for p in self.products:
             if p['name'] == product:
                 return p['id']
+        raise ValueError, 'No product named "%s"' % product
 
     #---- Methods for retrieving Components
 
@@ -430,8 +435,8 @@ class BugzillaBase(object):
 
     def getcomponentsdetails(self,product,force_refresh=False):
         '''Returns a dict of dicts, containing detailed component information
-        for the given product. The keys of the dict are component names. For 
-        each component, the value is a dict with the following keys: 
+        for the given product. The keys of the dict are component names. For
+        each component, the value is a dict with the following keys:
         description, initialowner, initialqacontact, initialcclist'''
         # XXX inconsistent: we don't do this list->dict mapping with querydata
         if force_refresh or product not in self._components_details:
@@ -445,7 +450,7 @@ class BugzillaBase(object):
         return self._components_details[product]
     def getcomponentdetails(self,product,component,force_refresh=False):
         '''Get details for a single component. Returns a dict with the
-        following keys: 
+        following keys:
         description, initialowner, initialqacontact, initialcclist'''
         d = self.getcomponentsdetails(product,force_refresh)
         return d[component]
@@ -480,7 +485,7 @@ class BugzillaBase(object):
         '''IMPLEMENT ME: Return a dict of full bug info for the given bug id'''
         raise NotImplementedError
     def _getbugs(self,idlist):
-        '''IMPLEMENT ME: Return a list of full bug dicts, one for each of the 
+        '''IMPLEMENT ME: Return a list of full bug dicts, one for each of the
         given bug ids'''
         raise NotImplementedError
     def _getbugsimple(self,id):
@@ -495,7 +500,7 @@ class BugzillaBase(object):
         '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
         raise NotImplementedError
 
-    # these return Bug objects 
+    # these return Bug objects
     def getbug(self,id):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
@@ -578,7 +583,7 @@ class BugzillaBase(object):
         raise NotImplementedError
     def _updatewhiteboard(self,id,text,which,action,comment,private):
         '''IMPLEMENT ME: Update the whiteboard given by 'which' for the given
-        bug. performs the given action (which may be 'append',' prepend', or 
+        bug. performs the given action (which may be 'append',' prepend', or
         'overwrite') using the given text.'''
         raise NotImplementedError
     def _updateflags(self,id,flags):
@@ -620,7 +625,7 @@ class BugzillaBase(object):
             ispatch:   Set to True if the attachment is a patch.
             contenttype: The mime-type of the attached file. Defaults to
                          application/octet-stream if not set. NOTE that text
-                         files will *not* be viewable in bugzilla unless you 
+                         files will *not* be viewable in bugzilla unless you
                          remember to set this to text/plain. So remember that!
         Returns (attachment_id,mailresults).
         '''
@@ -643,7 +648,7 @@ class BugzillaBase(object):
             ispatch:   Set to True if the attachment is a patch.
             contenttype: The mime-type of the attached file. Defaults to
                          application/octet-stream if not set. NOTE that text
-                         files will *not* be viewable in bugzilla unless you 
+                         files will *not* be viewable in bugzilla unless you
                          remember to set this to text/plain. So remember that!
         '''
         if isinstance(attachfile,str):
@@ -665,7 +670,7 @@ class BugzillaBase(object):
     def _attachment_uri(self,attachid):
         '''Returns the URI for the given attachment ID.'''
         att_uri = self.url.replace('xmlrpc.cgi','attachment.cgi')
-        att_uri = att_uri + '?id=%i' % attachid
+        att_uri = att_uri + '?id=%s' % attachid
         return att_uri
 
     def openattachment(self,attachid):
@@ -676,11 +681,10 @@ class BugzillaBase(object):
         att = opener.open(att_uri)
         # RFC 2183 defines the content-disposition header, if you're curious
         disp = att.headers['content-disposition'].split(';')
-        [filename_parm] = [i for i in disp if i.strip().startswith('filename=')]
-        (dummy,filename) = filename_parm.split('=')
-        # RFC 2045/822 defines the grammar for the filename value, but
-        # I think we just need to remove the quoting. I hope.
-        att.name = filename.strip('"')
+        disptype = disp.pop(0)
+        parms = dict([p.strip().split("=",1) for p in disp])
+        # Parameter values can be quoted/encoded as per RFC 2231
+        att.name = decode_rfc2231_value(parms['filename'])
         # Hooray, now we have a file-like object with .read() and .name
         return att
 
@@ -693,7 +697,7 @@ class BugzillaBase(object):
 
     # List of field aliases. If a createbug() call lacks a required field, but
     # a corresponding alias field is present, we'll automatically switch the
-    # field name. This lets us avoid having to change the call to match the 
+    # field name. This lets us avoid having to change the call to match the
     # bugzilla instance quite so much.
     field_aliases = (('summary','short_desc'),
                      ('description','comment'),
@@ -702,8 +706,8 @@ class BugzillaBase(object):
                      ('status','bug_status'))
 
     def _createbug(self,**data):
-        '''IMPLEMENT ME: Raw xmlrpc call for createBug() 
-        Doesn't bother guessing defaults or checking argument validity. 
+        '''IMPLEMENT ME: Raw xmlrpc call for createBug()
+        Doesn't bother guessing defaults or checking argument validity.
         Returns bug_id'''
         raise NotImplementedError
 
@@ -717,37 +721,37 @@ class BugzillaBase(object):
         The Bugzilla 3.2 docs say the following:
 
         "Clients that want to be able to interact uniformly with multiple
-        Bugzillas should always set both the params marked Required and those 
-        marked Defaulted, because some Bugzillas may not have defaults set for 
-        Defaulted parameters, and then this method will throw an error if you 
+        Bugzillas should always set both the params marked Required and those
+        marked Defaulted, because some Bugzillas may not have defaults set for
+        Defaulted parameters, and then this method will throw an error if you
         don't specify them."
 
         REQUIRED:
-          product: Name of Bugzilla product. 
+          product: Name of Bugzilla product.
             Ex: Red Hat Enterprise Linux
-          component: Name of component in Bugzilla product. 
+          component: Name of component in Bugzilla product.
             Ex: anaconda
-          version: Version in the list for the Bugzilla product. 
+          version: Version in the list for the Bugzilla product.
             Ex: 4.5
             See querydata['product'][<product>]['versions'] for values.
           summary: One line summary describing the bug report.
 
         DEFAULTED:
-          platform: Hardware type where this bug was experienced.  
+          platform: Hardware type where this bug was experienced.
             Ex: i386
             See querydefaults['rep_platform_list'] for accepted values.
-          severity: Bug severity.  
+          severity: Bug severity.
             Ex: medium
             See querydefaults['bug_severity_list'] for accepted values.
           priority: Bug priority.
             Ex: medium
             See querydefaults['priority_list'] for accepted values.
-          op_sys: Operating system bug occurs on. 
+          op_sys: Operating system bug occurs on.
             Ex: Linux
             See querydefaults['op_sys_list'] for accepted values.
           description: A detailed description of the bug report.
 
-        OPTIONAL: 
+        OPTIONAL:
           alias: Give the bug a (string) alias name.
             Alias can't be merely numerical.
             Alias can't contain spaces or commas.
@@ -756,14 +760,15 @@ class BugzillaBase(object):
           assigned_to: Bugzilla username to assign this bug to.
           qa_contact: Bugzilla username of QA contact for this bug.
           cc: List of Bugzilla usernames to CC on this bug.
+          keywords: List of keywords for the new bug
           status: Status to place the new bug in. Defaults to NEW.
 
         Important custom fields (used by RH Bugzilla and maybe others):
-        DEFAULTED: 
-          bug_file_loc: URL pointing to additional information for bug report. 
+        DEFAULTED:
+          bug_file_loc: URL pointing to additional information for bug report.
             Ex: http://username.fedorapeople.org/logs/crashlog.txt
-          reporter: Bugzilla username to use as reporter. 
-        OPTIONAL: 
+          reporter: Bugzilla username to use as reporter.
+        OPTIONAL:
           blocked: List of bug ids this report blocks.
           dependson: List of bug ids this report depends on.
         '''
@@ -902,10 +907,10 @@ class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
     We can then pass it to CookieJar.extract_cookies() to make it pull out the
     cookies from the set of headers we have.'''
-    def __init__(self,headers): 
+    def __init__(self,headers):
         self.headers = headers
         #log.debug("CookieResponse() headers = %s" % headers)
-    def info(self): 
+    def info(self):
         return self.headers
 
 class CookieTransport(xmlrpclib.Transport):
@@ -913,7 +918,7 @@ class CookieTransport(xmlrpclib.Transport):
     cookiejar = None
     scheme = 'http'
 
-    # Cribbed from xmlrpclib.Transport.send_user_agent 
+    # Cribbed from xmlrpclib.Transport.send_user_agent
     def send_cookies(self, connection, cookie_request):
         if self.cookiejar is None:
             log.debug("send_cookies(): creating in-memory cookiejar")
@@ -936,9 +941,9 @@ class CookieTransport(xmlrpclib.Transport):
         else:
             log.debug("send_cookies(): cookiejar empty. Nothing to send.")
 
-    # This is the same request() method from xmlrpclib.Transport,
+    # This is the same request() method from python 2.6's xmlrpclib.Transport,
     # with a couple additions noted below
-    def request(self, host, handler, request_body, verbose=0):
+    def request_with_cookies(self, host, handler, request_body, verbose=0):
         h = self.make_connection(host)
         if verbose:
             h.set_debuglevel(1)
@@ -946,10 +951,10 @@ class CookieTransport(xmlrpclib.Transport):
         # ADDED: construct the URL and Request object for proper cookie handling
         request_url = "%s://%s%s" % (self.scheme,host,handler)
         log.debug("request_url is %s" % request_url)
-        cookie_request  = urllib2.Request(request_url) 
+        cookie_request  = urllib2.Request(request_url)
 
         self.send_request(h,handler,request_body)
-        self.send_host(h,host) 
+        self.send_host(h,host)
         self.send_cookies(h,cookie_request) # ADDED. creates cookiejar if None.
         self.send_user_agent(h)
         self.send_content(h,request_body)
@@ -985,10 +990,74 @@ class CookieTransport(xmlrpclib.Transport):
 
         return self._parse_response(h.getfile(), sock)
 
+    # This is just python 2.7's xmlrpclib.Transport.single_request, with
+    # send additions noted below to send cookies along with the request
+    def single_request_with_cookies(self, host, handler, request_body, verbose=0):
+        h = self.make_connection(host)
+        if verbose:
+            h.set_debuglevel(1)
+
+        # ADDED: construct the URL and Request object for proper cookie handling
+        request_url = "%s://%s%s" % (self.scheme,host,handler)
+        log.debug("request_url is %s" % request_url)
+        cookie_request  = urllib2.Request(request_url)
+
+        try:
+            self.send_request(h,handler,request_body)
+            self.send_host(h,host)
+            self.send_cookies(h,cookie_request) # ADDED. creates cookiejar if None.
+            self.send_user_agent(h)
+            self.send_content(h,request_body)
+
+            response = h.getresponse(buffering=True)
+
+            # ADDED: parse headers and get cookies here
+            cookie_response = CookieResponse(response.msg)
+            # Okay, extract the cookies from the headers
+            self.cookiejar.extract_cookies(cookie_response,cookie_request)
+            log.debug("cookiejar now contains: %s" % self.cookiejar._cookies)
+            # And write back any changes
+            if hasattr(self.cookiejar,'save'):
+                try:
+                    self.cookiejar.save(self.cookiejar.filename)
+                except Exception, e:
+                    log.error("Couldn't write cookiefile %s: %s" % \
+                            (self.cookiejar.filename,str(e)))
+
+            if response.status == 200:
+                self.verbose = verbose
+                return self.parse_response(response)
+        except xmlrpclib.Fault:
+            raise
+        except Exception:
+            # All unexpected errors leave connection in
+            # a strange state, so we clear it.
+            self.close()
+            raise
+
+        #discard any response data and raise exception
+        if (response.getheader("content-length", 0)):
+            response.read()
+        raise xmlrpclib.ProtocolError(
+            host + handler,
+            response.status, response.reason,
+            response.msg,
+            )
+
+    # Override the appropriate request method
+    if hasattr(xmlrpclib.Transport, 'single_request'):
+        single_request = single_request_with_cookies # python 2.7+
+    else:
+        request = request_with_cookies # python 2.6 and earlier
+
 class SafeCookieTransport(xmlrpclib.SafeTransport,CookieTransport):
     '''SafeTransport subclass that supports cookies.'''
     scheme = 'https'
-    request = CookieTransport.request
+    # Override the appropriate request method
+    if hasattr(xmlrpclib.Transport, 'single_request'):
+        single_request = CookieTransport.single_request_with_cookies
+    else:
+        request = CookieTransport.request_with_cookies
 
 class _User(object):
     '''Container object for a bugzilla User.
@@ -1060,7 +1129,7 @@ class _User(object):
         self.bugzilla._updateperms(self.name, action, groups)
 
 class _Bug(object):
-    '''A container object for a bug report. Requires a Bugzilla instance - 
+    '''A container object for a bug report. Requires a Bugzilla instance -
     every Bug is on a Bugzilla, obviously.
     Optional keyword args:
         dict=DICT   - populate attributes with the result of a getBug() call
@@ -1138,9 +1207,14 @@ class _Bug(object):
     def __getattr__(self,name):
         if 'bug_id' in self.__dict__:
             if self.bugzilla.bugfields and name not in self.bugzilla.bugfields:
-                # We have a list of fields, and you ain't on it. Bail out.
+                # We have a list of fields, and you ain't on it.
+                # Check the aliases
+                for a in self.bugzilla.field_aliases:
+                    if a[0] == name: return getattr(self, a[1])
+                    if a[1] == name: return getattr(self, a[0])
+                # Not in the aliases. Bail out.
                 raise AttributeError, "field %s not in bugzilla.bugfields" % name
-            #print "Bug %i missing %s - loading" % (self.bug_id,name)
+            log.debug("Bug %i missing %s - doing refresh()", self.bug_id, name)
             self.refresh()
             if name in self.__dict__:
                 return self.__dict__[name]
@@ -1166,12 +1240,12 @@ class _Bug(object):
         r = self.bugzilla._getbug(self.bug_id)
         self.__dict__.update(r)
 
-    def reload(self): 
+    def reload(self):
         '''An alias for refresh()'''
         self.refresh()
 
     def setstatus(self,status,comment='',private=False,private_in_it=False,nomail=False):
-        '''Update the status for this bug report. 
+        '''Update the status for this bug report.
         Valid values for status are listed in querydefaults['bug_status_list']
         Commonly-used values are ASSIGNED, MODIFIED, and NEEDINFO.
         To change bugs to CLOSED, use .close() instead.
@@ -1206,7 +1280,7 @@ class _Bug(object):
                                   worktime,bz_gid)
         # TODO reload bug data here?
     def close(self,resolution,dupeid=0,fixedin='',comment='',isprivate=False,private_in_it=False,nomail=False):
-        '''Close this bug. 
+        '''Close this bug.
         Valid values for resolution are in bz.querydefaults['resolution_list']
         For bugzilla.redhat.com that's:
         ['NOTABUG','WONTFIX','DEFERRED','WORKSFORME','CURRENTRELEASE',
@@ -1214,7 +1288,7 @@ class _Bug(object):
          'INSUFFICIENT_DATA']
         If using DUPLICATE, you need to set dupeid to the ID of the other bug.
         If using WORKSFORME/CURRENTRELEASE/RAWHIDE/ERRATA/UPSTREAM/NEXTRELEASE
-          you can (and should) set 'new_fixed_in' to a string representing the 
+          you can (and should) set 'new_fixed_in' to a string representing the
           version that fixes the bug.
         You can optionally add a comment while closing the bug. Set 'isprivate'
           to True if you want that comment to be private.
@@ -1245,7 +1319,7 @@ class _Bug(object):
         Defaults to the 'status' whiteboard.'''
         return getattr(self,"%s_whiteboard" % which)
     def appendwhiteboard(self,text,which='status',comment=None,private=False):
-        '''Append the given text (with a space before it) to the given 
+        '''Append the given text (with a space before it) to the given
         whiteboard. Defaults to using status_whiteboard.'''
         self._dowhiteboard(text,which,'append',comment,private)
     def prependwhiteboard(self,text,which='status',comment=None,private=False):
