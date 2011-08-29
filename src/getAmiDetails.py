@@ -72,7 +72,7 @@ if BZ is None:
 else:
     print "Already opened Buzilla # = https://bugzilla.redhat.com/show_bug.cgi?id="+ BZ
 
-file = open('/tmp/buzilla',"w")
+file = open('/tmp/bugzilla',"w")
 file.write(BZ)
 file.close()
 
@@ -97,12 +97,10 @@ def startInstance(ec2connection, hardwareProfile):
     t.size = '15'
     #map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
     map['/dev/sda1'] = t  
-    
-    
+
     #blockDeviceMap = []
     #blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
-    
-    
+
     if ARCH == 'i386' and RHEL == '6.1':
         reservation = conn_region.run_instances(AMI, instance_type=hardwareProfile, key_name=SSHKEYNAME, block_device_map=map )
     elif ARCH == 'x86_64' and RHEL == '6.1':
