@@ -107,6 +107,7 @@ echo "***************** DETAILED RESULTS LOGGED TO validate.log  ***************
 echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " 
 echo "" 
 echo ""
+test_fetch_host_details
 test_rhel_version
 echo ""
 if [ $QUESTIONS == "no" ];then
@@ -158,7 +159,7 @@ test_grub
 show_failures
 open_bugzilla
 bugzilla_comments
-setup_rc.local
+setup_rc.local 
 #sos_report
 echo "REBOOTING"
 sleep 1

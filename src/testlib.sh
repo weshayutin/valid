@@ -159,7 +159,25 @@ function print_rhel_version()
           echo "Version Mismatched !!!!, Check the logs to see if yum update changed the RHEL version" 
         fi
 }
-	
+
+function test_fetch_host_details()
+{
+        BP_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i billingProducts | gawk -F":" '{print $NF}' | gawk -F"\"" '{print $2}'`
+        if [ $BP_ID == "bp-6fa54006" ]; then
+          HOSTNAME=`hostname`
+          INS_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+          IMG_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i imageId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+          INS_TYP=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceType | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+          ARCH=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i architecture | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+          REG=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i zone | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+          new_test "Fetching Host Details "
+          echo "This Host => $HOSTNAME with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
+	  echo "This is a Hourly image" >> $LOGFILE
+        else
+	  new_test "Fetching Host Details "
+          echo "This is not a Hourly image" >> $LOGFILE
+        fi
+}
 
 function userInput_CloudProvider()
 {
@@ -416,8 +434,9 @@ function test_swap_file()
 	 assert "/sbin/swapoff $swap && /sbin/swapon $swap"
 	fi
 
+# The below logic needs to be reversed, after checking the actual images. Actual images have swap partitions only for i386 and not for x86_64.
 	new_test "## Verify swap size ... "
-	if [ $UNAMEI == "x86_64" ]; then
+	if [ $UNAMEI == "i386" ]; then
 	 size=`free | grep Swap | awk '{print $2}'`
 	 echo "free | grep Swap | awk '{print $2}'" >> $LOGFILE
          echo "swap size = $size" >> LOGFILE
@@ -428,8 +447,8 @@ function test_swap_file()
 	 fi
 	fi 
           	
-	if [ $UNAMEI == "i386" ]; then
-	 echo "no swap for i386 is expected" >> $LOGFILE
+	if [ $UNAMEI == "x86_64" ]; then
+	 echo "no swap for x86_64 is expected" >> $LOGFILE
 	fi
 	
 }
@@ -853,7 +872,7 @@ function setup_rc.local()
 	echo "./image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES --memory=$MEM_HWP >> /var/log/messages" >> /etc/rc.local
 	cat /etc/rc.local >> $LOGFILE
 
-echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
+	echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
 }
 
 function postReboot()
