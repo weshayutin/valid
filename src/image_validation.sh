@@ -37,6 +37,7 @@ function usage()
 	   echo "--bugzilla-password :: Please specify your bugzilla password"
 	   echo "--bugzilla-num      :: If a bug has already been opened you can specify the number here "
 	   echo "--memory	     :: Minium total memory the system *should* have available"
+	   echo "--public-dns	     :: The Public-DNS Host name of the machine"
 }
 
 
@@ -73,6 +74,9 @@ for i in $*
 	  ;;
       --memory=*)
 	  MEM_HWP="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
+      --public-dns=*)
+	  PUB_DNS="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
         *)
          # unknown option 
@@ -152,7 +156,7 @@ test_sshSettings
 test_libc6-xen.conf
 test_grub
 #installTestKernel
-#resize2fs
+test_resize2fs
 
 
 ### DONT REMOVE OR COMMENT OUT ###

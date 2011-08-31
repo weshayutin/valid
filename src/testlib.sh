@@ -118,13 +118,13 @@ function assert()
         elif [[ "$RSLT" != "$option" ]] && [[ "$RSLT" != "$option2" ]] &&  [[ "$rc" != 0 ]] ;then
          #echo "IN THIRD TEST" >>$LOGFILE
          echo "${txtred}FAIL${txtrst}" 
-         echo "FAIL" >>  $LOGFILE
+         echo "FAIL1" >>  $LOGFILE
          echo ${RSLT} >>${LOGFILE}
 	 TEST_FAILED="$TEST_FAILED $TEST_CURRENT"
          let FAILURES++
         else
          echo "${txtred}FAIL${txtrst}" 
-         echo "FAIL" >>  $LOGFILE
+         echo "FAIL2" >>  $LOGFILE
          echo ${RSLT} >>${LOGFILE}
 	 TEST_FAILED="$TEST_FAILED $TEST_CURRENT"
          let FAILURES++
@@ -171,7 +171,7 @@ function test_fetch_host_details()
           ARCH=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i architecture | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
           REG=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i zone | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
           new_test "Fetching Host Details "
-          echo "This Host => $HOSTNAME with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
+          echo "This Host => $PUB_DNS with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
 	  echo "This is a Hourly image" >> $LOGFILE
         else
 	  new_test "Fetching Host Details "
@@ -429,7 +429,7 @@ function test_bash_history()
 function test_swap_file()
 {
 	new_test "## Verify turning on/off swap file ... "
-	if [ $UNAMEI == "x86_64" ]; then
+	if [ $UNAMEI == "i386" ]; then
 	 swap=`cat swap_partitions`
 	 assert "/sbin/swapoff $swap && /sbin/swapon $swap"
 	fi
@@ -740,7 +740,7 @@ function test_uname()
 
 }
 
-function resize2fs()
+function test_resize2fs()
 {
 	new_test "## Verify resize2fs ... "
 	if [ $RHEL == 6 ] ; then
@@ -749,7 +749,8 @@ function resize2fs()
 	if [ $RHEL == 5 ] ; then
 	 rc "resize2fs -p /dev/sda1 15000M"
 	fi
-	assert "df -h | grep 13G | wc -l" "1"
+	sleep 10
+	assert "df -h | grep 13G | wc -l " 1
 }
 
 function installTestKernel()

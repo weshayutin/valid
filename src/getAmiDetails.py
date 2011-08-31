@@ -161,7 +161,9 @@ def executeValidScript(SSHKEY, publicDNS,hwp,BZ):
     
    
 
-    command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]
+#    command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]
+    command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]+" --public-dns="+publicDNS
+
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
     os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
@@ -204,6 +206,7 @@ c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 #Use all hwp types for ec2 memory tests, other hwp tests
 hwp_i386 = [c1Medium, t1Micro , m1Small ]
 hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
+#hwp_x86_64 = [m1Large , m1Xlarge]
 
 #Use just one hwp for os tests
 #hwp_i386 = [c1Medium]
