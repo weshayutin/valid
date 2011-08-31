@@ -157,7 +157,7 @@ test_libc6-xen.conf
 test_grub
 #installTestKernel
 test_resize2fs
-
+test_fetch_host_details
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
