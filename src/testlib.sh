@@ -824,7 +824,7 @@ function open_bugzilla()
 function bugzilla_comments()
 {
 	echo "Adding log file contents to bugzilla"
-	split ${LOGFILE} -l 200 splitValid.log
+	split ${LOGFILE} -l 500 splitValid.log
 
  	for part in $(ls splitValid.log*);do
 	 BUG_COMMENTS=`cat $part`
