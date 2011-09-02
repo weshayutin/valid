@@ -170,8 +170,10 @@ function test_fetch_host_details()
           INS_TYP=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceType | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
           ARCH=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i architecture | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
           REG=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i zone | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+	  SIGN1=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/signature`
           new_test "Fetching Host Details "
           echo "This Host => $PUB_DNS with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
+	  echo "The Validate Signature is : $SIGN1" >> $LOGFILE
 	  echo "This is a Hourly image" >> $LOGFILE
         else
 	  new_test "Fetching Host Details "
