@@ -66,7 +66,7 @@ if BZ is None:
     print "**** No bugzilla # was passed, will open one here ****"
     bugzilla=Bugzilla36(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=BZUSER,password=BZPASS)
     mySummary=AMI+" "+RHEL+" "+ARCH+" "+REGION
-    BZ_Object=bugzilla.createbug(product="Cloud Image Validation",component="images",version="RHEL6.1",rep_platform="x86_64",summary=mySummary)
+    BZ_Object=bugzilla.createbug(product="Cloud Image Validation",component="images",version=RHEL,rep_platform=ARCH,summary=mySummary)
     BZ = str(BZ_Object.bug_id)
     print "Buzilla # = https://bugzilla.redhat.com/show_bug.cgi?id="+ BZ
 else:
