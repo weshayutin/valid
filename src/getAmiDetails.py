@@ -31,7 +31,7 @@ parser.add_option('-y','--bugzilla_username', type='string',dest='BZUSER',help='
 parser.add_option('-z','--bugzilla_password', type='string',dest='BZPASS',help='bugzilla password')
 parser.add_option('-m','--arch',  dest='ARCH', default='x86_64', help='arch = i386, or x86_64')
 parser.add_option('-x','--ignore',  dest='IGNORE', default='IGNORE', help='If set.. ignore the generated bug') #c1.medium
-parser.add_option('-g','--noGit',dest='NOGIT', default=False, help='If set.. do not pull valid src from git, scp to each instance' )
+parser.add_option('-g','--noGit',action="store_true", default=True, help='If set.. do not pull valid src from git, scp to each instance' )
 parser.add_option('-d','--baseDir',dest='BASEDIR',type='string',help='the dir of the src checkout ie.. ~/workspace/valid/src')
 
 
