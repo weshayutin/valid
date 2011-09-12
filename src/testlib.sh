@@ -162,6 +162,7 @@ function print_rhel_version()
 
 function test_fetch_host_details()
 {
+	yum install -y wget > /dev/null
         BP_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i billingProducts | gawk -F":" '{print $NF}' | gawk -F"\"" '{print $2}'`
         if [ $BP_ID == "bp-6fa54006" ]; then
           HOSTNAME=`hostname`
@@ -170,9 +171,11 @@ function test_fetch_host_details()
           INS_TYP=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceType | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
           ARCH=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i architecture | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
           REG=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i zone | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+	  SIGN1=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/signature`
           new_test "Fetching Host Details "
           echo "This Host => $PUB_DNS with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
 	  echo "This is a Hourly image" >> $LOGFILE
+	  echo "The Validate Signature is : $SIGN1" >> $LOGFILE
         else
 	  new_test "Fetching Host Details "
           echo "This is not a Hourly image" >> $LOGFILE
