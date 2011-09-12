@@ -162,6 +162,7 @@ function print_rhel_version()
 
 function test_fetch_host_details()
 {
+	yum install wget > /dev/null
         BP_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i billingProducts | gawk -F":" '{print $NF}' | gawk -F"\"" '{print $2}'`
         if [ $BP_ID == "bp-6fa54006" ]; then
           HOSTNAME=`hostname`
