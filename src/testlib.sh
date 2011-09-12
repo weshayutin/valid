@@ -752,7 +752,7 @@ function test_resize2fs()
 	if [ $RHEL == 5 ] ; then
 	 rc "resize2fs -p /dev/sda1 15000M"
 	fi
-	sleep 10
+	sleep 15
 	assert "df -h | grep 13G | wc -l " 1
 }
 
