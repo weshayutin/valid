@@ -208,7 +208,7 @@ m1Small = {"name":"m1.small","memory":"1700000","cpu":"1","arch":"i386"}
 m1Large = {"name":"m1.large","memory":"7500000","cpu":"2","arch":"x86_64"}
 m1Xlarge = {"name":"m1.xlarge","memory":"15000000","cpu":"4","arch":"x86_64"}
 t1Micro = {"name":"t1.micro","memory":"600000","cpu":"1","arch":"both"}
-m2Xlarge = {"name":"m2.2xlarge","memory":"17100000","cpu":"2","arch":"x86_64"}
+m2Xlarge = {"name":"m2.xlarge","memory":"17100000","cpu":"2","arch":"x86_64"}
 m22Xlarge = {"name":"m2.2xlarge","memory":"34200000","cpu":"4","arch":"x86_64"}
 m24Xlarge = {"name":"m2.4xlarge","memory":"68400000","cpu":"8","arch":"x86_64"}
 c1Medium = {"name":"c1.medium","memory":"1700000","cpu":"2","arch":"i386"}
@@ -217,7 +217,8 @@ c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 
 #Use all hwp types for ec2 memory tests, other hwp tests
 hwp_i386 = [c1Medium, t1Micro , m1Small ]
-hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge , m22Xlarge , m24Xlarge , c1Xlarge]
+#hwp_i386 = [c1Medium]
+hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge, m22Xlarge, m24Xlarge , c1Xlarge]
 #hwp_x86_64 = [m1Large , m1Xlarge]
 
 #Use just one hwp for os tests
