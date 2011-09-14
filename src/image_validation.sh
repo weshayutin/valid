@@ -125,7 +125,7 @@ echo ""
 test_uname
 test_disk_format
 test_disk_size
-test_swap_file
+[ ! -f /root/noswap ] && test_swap_file || echo "t1.micro doesn't require swap"
 test_selinux
 test_package_set
 test_verify_rpms
@@ -163,6 +163,7 @@ test_fetch_host_details
 show_failures
 open_bugzilla
 bugzilla_comments
+sed -i 's/default=1/default=0/' /boot/grub/grub.conf
 setup_rc.local 
 #sos_report
 echo "REBOOTING"
