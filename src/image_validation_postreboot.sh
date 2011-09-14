@@ -118,7 +118,8 @@ print_rhel_version
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
-bugzilla_comments()
+sleep 360
+bugzilla_comments
 verify_bugzilla
 #sos_report
 im_exit

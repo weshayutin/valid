@@ -219,7 +219,7 @@ c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 hwp_i386 = [c1Medium, t1Micro , m1Small ]
 #hwp_i386 = [c1Medium]
 hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge, m22Xlarge, m24Xlarge , c1Xlarge]
-#hwp_x86_64 = [m1Large , m1Xlarge]
+#hwp_x86_64 = [c1Xlarge]
 
 #Use just one hwp for os tests
 #hwp_i386 = [c1Medium]
@@ -234,7 +234,7 @@ if CSV:
         ARCH = myRow[0]
         REGION = myRow[1]
         RHEL = myRow[4]
-        BZ = myRow[3]
+#        BZ = myRow[3]
         AMI = myRow[5]
         
         BID = addBugzilla(BZ, AMI, RHEL, ARCH, REGION)

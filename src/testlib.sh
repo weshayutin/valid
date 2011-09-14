@@ -434,6 +434,9 @@ function test_swap_file()
 	new_test "## Verify turning on/off swap file ... "
 	if [ $UNAMEI == "i386" ]; then
 	 swap=`cat swap_partitions`
+	 fst=`cat /etc/fstab | grep swap | awk '{print $1}'`
+	 [ $swap != $fst ] && [ -b /dev/xvde3] && sed -i 's/\/dev\/xvda3/\/dev\/xvde3/' /etc/fstab 
+	 [ $swap != $fst ] && [ -b /dev/xvda3] && sed -i 's/\/dev\/xvde3/\/dev\/xvda3/' /etc/fstab 
 	 assert "/sbin/swapoff $swap && /sbin/swapon $swap"
 	fi
 
@@ -747,7 +750,8 @@ function test_resize2fs()
 {
 	new_test "## Verify resize2fs ... "
 	if [ $RHEL == 6 ] ; then
-	 rc "resize2fs -p /dev/xvde1 15000M"
+	 [ -b /dev/xvde1 ] && rc "resize2fs -p /dev/xvde1 15000M"
+	 [ -b /dev/xvda1 ] && rc "resize2fs -p /dev/xvda1 15000M"
 	fi
 	if [ $RHEL == 5 ] ; then
 	 rc "resize2fs -p /dev/sda1 15000M"
@@ -873,7 +877,7 @@ function setup_rc.local()
 {
 	echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
 	echo "cd /root/valid/src" >> /etc/rc.local
-	echo "./image_validation_postreboot.sh --imageID=asdf --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES --memory=$MEM_HWP >> /var/log/messages" >> /etc/rc.local
+	echo "./image_validation_postreboot.sh --imageID=${IMAGEID} --RHEL=$RHELV --full-yum-suite=no --skip-questions=yes --bugzilla-username=$BUG_USERNAME --bugzilla-password=$BUG_PASSWORD --bugzilla-num=$BUGZILLA --failures=$FAILURES --memory=$MEM_HWP >> /var/log/messages" >> /etc/rc.local
 	cat /etc/rc.local >> $LOGFILE
 
 	echo "####################### cat of /etc/rc.local ##################" >> $LOGFILE
