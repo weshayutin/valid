@@ -119,6 +119,7 @@ print_rhel_version
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
 sleep 360
+open_bugzilla
 bugzilla_comments
 verify_bugzilla
 #sos_report
