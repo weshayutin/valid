@@ -474,7 +474,7 @@ function test_cloud-firstboot()
 	if [ $RHELV == 6.0 ]; then
 	 echo "WAIVED TESTS FOR BUGZILLA 704821"
 	else
-         new_test "## Verify rh-cloud-firstboot is on ... "
+         new_test "## Verify rh-cloud-firstboot is OFF ... "
 	 assert "chkconfig --list | grep rh-cloud | grep 3:off | wc -l" "1"
          if [  -f /etc/sysconfig/rh-cloud-firstboot ]; then
 	  echo "/etc/sysconfig/rh-cloud-firstboot FOUND" >> $LOGFILE
