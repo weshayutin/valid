@@ -38,6 +38,8 @@ function usage()
 	   echo "--bugzilla-num      :: If a bug has already been opened you can specify the number here "
 	   echo "--memory	     :: Minium total memory the system *should* have available"
 	   echo "--public-dns	     :: The Public-DNS Host name of the machine"
+	   echo "--ami-id	     :: The AMI ID"
+	   echo "--arch-id	     :: The Architecture i386 or x86_64 for the launched instance"
 }
 
 
@@ -77,6 +79,12 @@ for i in $*
 	  ;;
       --public-dns=*)
 	  PUB_DNS="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
+      --ami-id=*)
+	  AMI_ID="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
+	  ;;
+      --arch-id=*)
+	  ARCH_ID="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
         *)
          # unknown option 

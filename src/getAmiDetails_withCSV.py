@@ -9,6 +9,7 @@ import csv
 from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping
 from bugzilla.bugzilla3 import Bugzilla36
 import rhui_lib
+import ConfigParser
 
 #def main(argv):
 #    try:
@@ -16,59 +17,59 @@ import rhui_lib
 #    except getopt.GetoptError:
 #        usage()
 #        sys.exit(2)
+config = ConfigParser.ConfigParser()
+config.read('/etc/validation.cfg')
+
+SSHKEY_NAME_AP_S = config.get('SSH-Info', 'ssh-key-name_apsouth') 
+SSHKEY_AP_S  = config.get('SSH-Info', 'ssh-key-path_apsouth')
+SSHKEY_NAME_AP_N = config.get('SSH-Info', 'ssh-key-name_apnorth') 
+SSHKEY_AP_N  = config.get('SSH-Info', 'ssh-key-path_apnorth')
+SSHKEY_NAME_EU_W = config.get('SSH-Info', 'ssh-key-name_euwest') 
+SSHKEY_EU_W  = config.get('SSH-Info', 'ssh-key-path_euwest')
+SSHKEY_NAME_US_W = config.get('SSH-Info', 'ssh-key-name_uswest') 
+SSHKEY_US_W  = config.get('SSH-Info', 'ssh-key-path_uswest')
+SSHKEY_NAME_US_E = config.get('SSH-Info', 'ssh-key-name_useast') 
+SSHKEY_US_E = config.get('SSH-Info', 'ssh-key-path_useast')
+
+BZUSER = config.get('Bugzilla-Info', 'bugzilla_usr')
+BZPASS = config.get('Bugzilla-Info', 'bugzilla_pwd')
+
+AWS_ACCESS_KEY_ID = config.get('EC2-Keys', 'ec2-key')
+AWS_SECRET_ACCESS_KEY = config.get('EC2-Keys', 'ec2-secret-key')
+
+CSV = config.get('Misc-Info', 'csv')
+NOGIT = config.get('Misc-Info', 'git')
+BASEDIR = config.get('Misc-Info', 'basedir')
+
+BZ = None
+
+val1 = {
+    'SSHKEY_US_E':           SSHKEY_US_E, 
+    'SSHKEY_NAME_US_E':      SSHKEY_NAME_US_E, 
+    'SSHKEY_US_W':           SSHKEY_US_W, 
+    'SSHKEY_NAME_US_W':      SSHKEY_NAME_US_W, 
+    'SSHKEY_EU_W':           SSHKEY_EU_W, 
+    'SSHKEY_NAME_EU_W':      SSHKEY_NAME_EU_W, 
+    'SSHKEY_AP_N':           SSHKEY_AP_N, 
+    'SSHKEY_NAME_AP_N':      SSHKEY_NAME_AP_N, 
+    'SSHKEY_AP_S':           SSHKEY_AP_S, 
+    'SSHKEY_NAME_AP_S':      SSHKEY_NAME_AP_S, 
+    'BZUSER':                BZUSER, 
+    'BZPASS':                BZPASS, 
+    'AWS_ACCESS_KEY_ID':     AWS_ACCESS_KEY_ID, 
+    'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY, 
+    'CSV':                   CSV, 
+    'NOGIT':                 NOGIT, 
+    'BASEDIR':               BASEDIR,
+}
+
+for v in val1:
+    if not val1[v]:
+        print "The value ", v, "is missing in .cfg file." 
+        sys.exit()
+
 CSVFILE = "test1.csv"
 parser = optparse.OptionParser()
-
-desc="ami test script"
-
-parser.add_option('-c','--csv', dest='CSV', default=False, help='If set.. will use a csv file as an input')
-parser.add_option('-r','--region', type='string', dest='REGION', help='specify ec2 region')
-parser.add_option('-v','--RHEL_Version', type='string', dest='RHEL', help='RHEL version')
-parser.add_option('-b', '--bugzilla_number', type='string', dest='BZ', help='optional bugzilla number')
-parser.add_option('-a','--ami_number', type='string', dest='AMI', help='ami id number')
-parser.add_option('-s','--ssh-key-path', type='string',dest='SSHKEY',help='full path to ssh key for the ec2 region')
-parser.add_option('-k','--ssh-key-name', type='string',dest='SSHKEYNAME',help='name of the key pair')
-parser.add_option('-i','--ec2-key', type='string',dest='AWS_ACCESS_KEY_ID',help='EC2 Access Key ID')
-parser.add_option('-p','--ec2-secret-key', type='string',dest='AWS_SECRET_ACCESS_KEY',help='EC2 Secret Access Key ID')
-parser.add_option('-y','--bugzilla_username', type='string',dest='BZUSER',help='bugzilla username')
-parser.add_option('-z','--bugzilla_password', type='string',dest='BZPASS',help='bugzilla password')
-parser.add_option('-m','--arch',  dest='ARCH', default='x86_64', help='arch = i386, or x86_64')
-parser.add_option('-x','--ignore',  dest='IGNORE', default='IGNORE', help='If set.. ignore the generated bug') #c1.medium
-parser.add_option('-g','--noGit',dest='NOGIT', default=True, help='If set.. do not pull valid src from git, scp to each instance' )
-parser.add_option('-d','--baseDir',dest='BASEDIR',type='string',help='the dir of the src checkout ie.. ~/workspace/valid/src')
-
-
-(opts, args) = parser.parse_args()
-AMI = opts.AMI
-REGION = opts.REGION
-RHEL = opts.RHEL
-BZ = opts.BZ
-SSHKEY = opts.SSHKEY
-SSHKEYNAME = opts.SSHKEYNAME
-AWS_ACCESS_KEY_ID = opts.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = opts.AWS_SECRET_ACCESS_KEY
-BZUSER = opts.BZUSER
-BZPASS = opts.BZPASS
-ARCH = opts.ARCH
-IGNORE = opts.IGNORE
-NOGIT = opts.NOGIT
-BASEDIR = opts.BASEDIR
-CSV = opts.CSV
-
-if CSV:
-    mandatories = ['BASEDIR','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
-    for m in mandatories:
-        if not opts.__dict__[m]:
-            print "mandatory option is missing\n"
-            parser.print_help()
-            exit(-1)
-else:
-    mandatories = ['BASEDIR','AMI','REGION','SSHKEY','RHEL','AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'ARCH']
-    for m in mandatories:
-        if not opts.__dict__[m]:
-            print "mandatory option is missing\n"
-            parser.print_help()
-            exit(-1)
 
 def addBugzilla(BZ, AMI, RHEL, ARCH, REGION):
     if BZ is None:
@@ -76,14 +77,14 @@ def addBugzilla(BZ, AMI, RHEL, ARCH, REGION):
         bugzilla=Bugzilla36(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=BZUSER,password=BZPASS)
         mySummary=AMI+" "+RHEL+" "+ARCH+" "+REGION
         RHV = "RHEL"+RHEL
-        BZ_Object=bugzilla.createbug(product="Cloud Image Validation",component="images",version=RHV,rep_platform="x86_64",summary=mySummary)
+        BZ_Object=bugzilla.createbug(product="Cloud Image Validation",component="images",version=RHV,rep_platform=ARCH,summary=mySummary)
         BZ = str(BZ_Object.bug_id)
         print "Buzilla # = https://bugzilla.redhat.com/show_bug.cgi?id="+ BZ
         return BZ
     else:
-	mySummary=AMI+" "+RHEL+" "+ARCH+" "+REGION
+        mySummary=AMI+" "+RHEL+" "+ARCH+" "+REGION
         print "Already opened Buzilla # = https://bugzilla.redhat.com/show_bug.cgi?id="+ BZ
-	return BZ
+        return BZ
 
     file = open('/tmp/bugzilla',"a")
     file.write("\n")
@@ -93,7 +94,7 @@ def addBugzilla(BZ, AMI, RHEL, ARCH, REGION):
     file.close()
     os.system("cp "+BASEDIR+"/nohup.out "+BASEDIR+"/nohup_"+AMI+".out ; cat /dev/null > "+BASEDIR+"/nohup.out")
 
-if CSV is None:        
+if CSV == 'false':        
     BID = addBugzilla(BZ, AMI, RHEL, ARCH, REGION)
 
 
@@ -151,16 +152,15 @@ def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
     commandPath = "/root/valid/src"
     
 
-    if NOGIT:
-	time.sleep(5)
+    if NOGIT == 'false':
     	if hwp["name"] == 't1.micro':
             os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid")
             os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" touch /root/noswap")
-	else:
+        else:
             os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid")
         print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"\n"
         os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
-    else:
+    elif NOGIT == 'true':
 	if hwp["name"] == 't1.micro':
             os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" touch /root/noswap")
         os.system("ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" yum -y install git")
@@ -181,7 +181,7 @@ def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
    
 
 #    command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]
-    command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]+" --public-dns="+publicDNS
+    command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]+" --public-dns="+publicDNS+" --ami-id="+AMI+" --arch-id="+ARCH
 
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
@@ -231,7 +231,7 @@ hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge, m22Xlarge, m24Xlarge , c1X
 #Use just one hwp for os tests
 #hwp_i386 = [c1Medium]
 #hwp_x86_64 = [m1Xlarge,m22Xlarge]
-if CSV:
+if CSV == 'true':
     reader = csv.reader(open(CSVFILE,"rb"))
     fields = reader.next()
     ami = [(row[0], row[1], row[2], row[3], row[4], row[5]) for row in reader]
@@ -247,20 +247,20 @@ if CSV:
         BID = addBugzilla(BZ, AMI, RHEL, ARCH, REGION)
         
         if REGION == "us-east-1":
-            SSHKEY = "/home/kbidarka/cloud-keyuseast-new.pem"
-            SSHKEYNAME = "cloud-keyuseast-new"
+            SSHKEY = SSHKEY_US_E
+            SSHKEYNAME = SSHKEY_NAME_US_E
         elif REGION == "us-west-1":
-            SSHKEY = "/home/kbidarka/cloud-keyuswest-new.pem"
-            SSHKEYNAME = "cloud-keyuswest-new"
+            SSHKEY = SSHKEY_US_W
+            SSHKEYNAME = SSHKEY_NAME_US_W
         elif REGION == "eu-west-1":
-            SSHKEY = "/home/kbidarka/cloud-keyeuwest-new.pem"
-            SSHKEYNAME = "cloud-keyeuwest-new"
+            SSHKEY = SSHKEY_EU_W
+            SSHKEYNAME = SSHKEY_NAME_EU_W
         elif REGION == "ap-southeast-1":
-            SSHKEY = "/home/kbidarka/cloud-keyapnorth-new.pem"
-            SSHKEYNAME = "cloud-keyapnorth-new"
+            SSHKEY = SSHKEY_AP_S
+            SSHKEYNAME = SSHKEY_NAME_AP_S
         elif REGION == "ap-northeast-1":
-            SSHKEY = "/home/kbidarka/cloud-keyapsouth-new.pem"
-            SSHKEYNAME = "cloud-keyapsouth-new"
+            SSHKEY = SSHKEY_AP_N
+            SSHKEYNAME = SSHKEY_NAME_AP_N
 
         
         publicDNS = []

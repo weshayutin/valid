@@ -111,7 +111,6 @@ echo ""
 test_yum_plugin
 test_uname
 test_memory
-test_fetch_host_details
 print_rhel_version
 #installTestKernel
 

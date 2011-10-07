@@ -164,34 +164,29 @@ function test_fetch_host_details()
 {
 	yum install -y wget > /dev/null
         BP_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i billingProducts | gawk -F":" '{print $NF}' | gawk -F"\"" '{print $2}'`
+        INS_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+        IMG_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i imageId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+        INS_TYP=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceType | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+        ARCH=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i architecture | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+        REG=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i zone | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
+	SIGN1=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/signature`
+        new_test "Fetching the identity doc Details"
+	echo "Verifying that signature exists" >> $LOGFILE
+	[ ! -z SIGN1 ] && SIGNAT=1 || SIGNAT=0
+	assert "echo $SIGNAT" "1"
+	echo "Verifying the IMAGE ID" >> $LOGFILE
+	[ $AMI_ID == $IMG_ID ] && IMGID=1 || IMGID=0
+	assert "echo $IMGID" "1"
+	echo "Verifying the Architecture" >> $LOGFILE
+	[ $ARCH_ID == $ARCH ] && ARCHID=1 || ARCHID=0
+	assert "echo $ARCHID" "1"
+        echo "This Host => $PUB_DNS with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
+	echo "The Validate Signature is : $SIGN1" >> $LOGFILE
+
         if [ $BP_ID == "bp-6fa54006" ]; then
-          HOSTNAME=`hostname`
-          INS_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          IMG_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i imageId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          INS_TYP=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceType | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          ARCH=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i architecture | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          REG=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i zone | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-	  SIGN1=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/signature`
-	  [ ! -z SIGN1 ] && SIGNAT=1 || SIGNAT=0
-	  assert "echo $SIGNAT" "1"
-          new_test "Fetching Host Details "
-          echo "This Host => $PUB_DNS with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
 	  echo "This is a Hourly image" >> $LOGFILE
-	  echo "The Validate Signature is : $SIGN1" >> $LOGFILE
         elif [ $BP_ID == "bp-63a5400a" ]; then
-          HOSTNAME=`hostname`
-          INS_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          IMG_ID=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i imageId | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          INS_TYP=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i instanceType | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          ARCH=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i architecture | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          REG=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/document | grep -i zone | gawk '{print $NF}'| gawk -F"\"" '{print $2}'`
-          SIGN1=`wget -q  -O - http://169.254.169.254/latest/dynamic/instance-identity/signature`
-	  [ ! -z SIGN1 ] && SIGNAT=1 || SIGNAT=0 
-	  assert "echo $SIGNAT" "1"
-	  new_test "Fetching Host Details "
-          echo "This Host => $PUB_DNS with Image Id : $IMG_ID, is launched with Instance Id : $INS_ID , Instance Type : $INS_TYP and Arch : $ARCH in the Region : $REG" >> $LOGFILE
           echo "This is a Cloud Access image" >> $LOGFILE
-	  echo "The Validate Signature is : $SIGN1" >> $LOGFILE
         fi
 }
 
