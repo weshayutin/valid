@@ -20,15 +20,15 @@ import ConfigParser
 config = ConfigParser.ConfigParser()
 config.read('/etc/validation.cfg')
 
-SSHKEY_NAME_AP_S = config.get('SSH-Info', 'ssh-key-name_apsouth') 
+SSHKEY_NAME_AP_S = config.get('SSH-Info', 'ssh-key-name_apsouth')
 SSHKEY_AP_S  = config.get('SSH-Info', 'ssh-key-path_apsouth')
-SSHKEY_NAME_AP_N = config.get('SSH-Info', 'ssh-key-name_apnorth') 
+SSHKEY_NAME_AP_N = config.get('SSH-Info', 'ssh-key-name_apnorth')
 SSHKEY_AP_N  = config.get('SSH-Info', 'ssh-key-path_apnorth')
-SSHKEY_NAME_EU_W = config.get('SSH-Info', 'ssh-key-name_euwest') 
+SSHKEY_NAME_EU_W = config.get('SSH-Info', 'ssh-key-name_euwest')
 SSHKEY_EU_W  = config.get('SSH-Info', 'ssh-key-path_euwest')
-SSHKEY_NAME_US_W = config.get('SSH-Info', 'ssh-key-name_uswest') 
+SSHKEY_NAME_US_W = config.get('SSH-Info', 'ssh-key-name_uswest')
 SSHKEY_US_W  = config.get('SSH-Info', 'ssh-key-path_uswest')
-SSHKEY_NAME_US_E = config.get('SSH-Info', 'ssh-key-name_useast') 
+SSHKEY_NAME_US_E = config.get('SSH-Info', 'ssh-key-name_useast')
 SSHKEY_US_E = config.get('SSH-Info', 'ssh-key-path_useast')
 
 BZUSER = config.get('Bugzilla-Info', 'bugzilla_usr')
@@ -44,28 +44,28 @@ BASEDIR = config.get('Misc-Info', 'basedir')
 BZ = None
 
 val1 = {
-    'SSHKEY_US_E':           SSHKEY_US_E, 
-    'SSHKEY_NAME_US_E':      SSHKEY_NAME_US_E, 
-    'SSHKEY_US_W':           SSHKEY_US_W, 
-    'SSHKEY_NAME_US_W':      SSHKEY_NAME_US_W, 
-    'SSHKEY_EU_W':           SSHKEY_EU_W, 
-    'SSHKEY_NAME_EU_W':      SSHKEY_NAME_EU_W, 
-    'SSHKEY_AP_N':           SSHKEY_AP_N, 
-    'SSHKEY_NAME_AP_N':      SSHKEY_NAME_AP_N, 
-    'SSHKEY_AP_S':           SSHKEY_AP_S, 
-    'SSHKEY_NAME_AP_S':      SSHKEY_NAME_AP_S, 
-    'BZUSER':                BZUSER, 
-    'BZPASS':                BZPASS, 
-    'AWS_ACCESS_KEY_ID':     AWS_ACCESS_KEY_ID, 
-    'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY, 
-    'CSV':                   CSV, 
-    'NOGIT':                 NOGIT, 
+    'SSHKEY_US_E':           SSHKEY_US_E,
+    'SSHKEY_NAME_US_E':      SSHKEY_NAME_US_E,
+    'SSHKEY_US_W':           SSHKEY_US_W,
+    'SSHKEY_NAME_US_W':      SSHKEY_NAME_US_W,
+    'SSHKEY_EU_W':           SSHKEY_EU_W,
+    'SSHKEY_NAME_EU_W':      SSHKEY_NAME_EU_W,
+    'SSHKEY_AP_N':           SSHKEY_AP_N,
+    'SSHKEY_NAME_AP_N':      SSHKEY_NAME_AP_N,
+    'SSHKEY_AP_S':           SSHKEY_AP_S,
+    'SSHKEY_NAME_AP_S':      SSHKEY_NAME_AP_S,
+    'BZUSER':                BZUSER,
+    'BZPASS':                BZPASS,
+    'AWS_ACCESS_KEY_ID':     AWS_ACCESS_KEY_ID,
+    'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
+    'CSV':                   CSV,
+    'NOGIT':                 NOGIT,
     'BASEDIR':               BASEDIR,
 }
 
 for v in val1:
     if not val1[v]:
-        print "The value ", v, "is missing in .cfg file." 
+        print "The value ", v, "is missing in .cfg file."
         sys.exit()
 
 CSVFILE = "test1.csv"
@@ -94,7 +94,7 @@ def addBugzilla(BZ, AMI, RHEL, ARCH, REGION):
     file.close()
     os.system("cp "+BASEDIR+"/nohup.out "+BASEDIR+"/nohup_"+AMI+".out ; cat /dev/null > "+BASEDIR+"/nohup.out")
 
-if CSV == 'false':        
+if CSV == 'false':
     BID = addBugzilla(BZ, AMI, RHEL, ARCH, REGION)
 
 
@@ -109,11 +109,11 @@ def getConnection(key, secret, region):
 
 def startInstance(ec2connection, hardwareProfile, ARCH, RHEL, AMI, SSHKEYNAME):
     conn_region = ec2connection
-    map = BlockDeviceMapping() 
+    map = BlockDeviceMapping()
     t = EBSBlockDeviceType()
     t.size = '15'
     #map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
-    map['/dev/sda1'] = t  
+    map['/dev/sda1'] = t
 
     #blockDeviceMap = []
     #blockDeviceMap.append( {'DeviceName':'/dev/sda', 'Ebs':{'VolumeSize' : '100'} })
@@ -129,14 +129,14 @@ def startInstance(ec2connection, hardwareProfile, ARCH, RHEL, AMI, SSHKEYNAME):
     else:
         print "arch type is neither i386 or x86_64.. will exit"
         exit(1)
-        
+
     myinstance = reservation.instances[0]
-    
+
     time.sleep(5)
     while(not myinstance.update() == 'running'):
         time.sleep(5)
         print myinstance.update()
-        
+
     instanceDetails = myinstance.__dict__
     pprint(instanceDetails)
     #region = instanceDetails['placement']
@@ -146,14 +146,13 @@ def startInstance(ec2connection, hardwareProfile, ARCH, RHEL, AMI, SSHKEYNAME):
     # check for console output here to make sure ssh is up
     return publicDNS
 
-def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):    
+def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
     filepath = BASEDIR
     serverpath = "/root/valid"
     commandPath = "/root/valid/src"
-    
 
     if NOGIT == 'false':
-    	if hwp["name"] == 't1.micro':
+        if hwp["name"] == 't1.micro':
             os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/valid")
             os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" touch /root/noswap")
         else:
@@ -161,11 +160,12 @@ def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
         print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"\n"
         os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
     elif NOGIT == 'true':
-	if hwp["name"] == 't1.micro':
+        if hwp["name"] == 't1.micro':
             os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" touch /root/noswap")
         os.system("ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" yum -y install git")
         os.system("ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" git clone git://github.com/weshayutin/valid.git")
-       
+
+
     # COPY KERNEL if there
     serverpath = "/root/kernel"
     os.system("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" mkdir -p /root/kernel")
@@ -177,8 +177,8 @@ def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
         filepath = BASEDIR+"/kernel/x86_64/*"
         print "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath+"\n"
         os.system("scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " -r " + filepath + " root@"+publicDNS+":"+serverpath)
-    
-   
+
+
 
 #    command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]
     command = commandPath+"/image_validation.sh --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]+" --public-dns="+publicDNS+" --ami-id="+AMI+" --arch-id="+ARCH
@@ -186,8 +186,7 @@ def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
     os.system("nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command)
-    
-    
+
 
 def printValues(hwp):
     print "+++++++"
@@ -200,13 +199,13 @@ def printValues(hwp):
 
 def myfunction(string, sleeptime,lock,SSHKEY,publicDNS):
         #entering critical section
-        lock.acquire() 
+        lock.acquire()
         print string," Now Sleeping after Lock acquired for ",sleeptime
-        time.sleep(sleeptime) 
-        
+        time.sleep(sleeptime)
+
         print string," Now releasing lock and then sleeping again"
         lock.release()
-        
+
         #exiting critical section
         time.sleep(sleeptime) # why?
 
@@ -219,7 +218,7 @@ m2Xlarge = {"name":"m2.xlarge","memory":"17100000","cpu":"2","arch":"x86_64"}
 m22Xlarge = {"name":"m2.2xlarge","memory":"34200000","cpu":"4","arch":"x86_64"}
 m24Xlarge = {"name":"m2.4xlarge","memory":"68400000","cpu":"8","arch":"x86_64"}
 c1Medium = {"name":"c1.medium","memory":"1700000","cpu":"2","arch":"i386"}
-c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}   
+c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 
 
 #Use all hwp types for ec2 memory tests, other hwp tests
@@ -243,9 +242,9 @@ if CSV == 'true':
         RHEL = myRow[4]
 #        BZ = myRow[3]
         AMI = myRow[5]
-        
+
         BID = addBugzilla(BZ, AMI, RHEL, ARCH, REGION)
-        
+
         if REGION == "us-east-1":
             SSHKEY = SSHKEY_US_E
             SSHKEYNAME = SSHKEY_NAME_US_E
@@ -262,7 +261,7 @@ if CSV == 'true':
             SSHKEY = SSHKEY_AP_N
             SSHKEYNAME = SSHKEY_NAME_AP_N
 
-        
+
         publicDNS = []
         if ARCH == 'i386':
             for hwp in hwp_i386:
@@ -283,14 +282,14 @@ if CSV == 'true':
 #        print "sleep for 130 seconds"
 #        time.sleep(130)
         print "Trying to fetch a file to make sure the SSH works, before proceeding ahead."
-	f_path = "/tmp/network"
-	l_path = "/etc/init.d/network"
+        f_path = "/tmp/network"
+        l_path = "/etc/init.d/network"
         for host in publicDNS:
             keystat = rhui_lib.putfile(host["hostname"], SSHKEY, l_path, f_path)
-            if not keystat: 
+            if not keystat:
                 executeValidScript(SSHKEY, host["hostname"], host["hwp"], BID, ARCH, AMI, REGION, RHEL)
-	    else:
-	        print "The Amazon node : "+host["hostname"]+" is not accessible, waited for 210 sec. Skipping and proceeding with the next Profile"
+            else:
+	            print "The Amazon node : "+host["hostname"]+" is not accessible, waited for 210 sec. Skipping and proceeding with the next Profile"
 else:
     publicDNS = []
     if ARCH == 'i386':
@@ -299,7 +298,7 @@ else:
             myConn = getConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION)
             this_hostname = startInstance(myConn, hwp["name"], ARCH, RHEL, AMI, SSHKEYNAME)
             map = {"hostname":this_hostname,"hwp":hwp}
-            publicDNS.append(map)                  
+            publicDNS.append(map)
     elif ARCH == 'x86_64':
         for hwp in hwp_x86_64:
             printValues(hwp)
@@ -307,7 +306,7 @@ else:
             this_hostname = startInstance(myConn, hwp["name"], ARCH, RHEL, AMI, SSHKEYNAME)
             map = {"hostname":this_hostname,"hwp":hwp}
             publicDNS.append(map)
-    
+
     lock = thread.allocate_lock()
 #    print "sleep for 130 seconds"
 #    time.sleep(130)
@@ -316,7 +315,7 @@ else:
     l_path = "/etc/init.d/network"
     for host in publicDNS:
         keystat = rhui_lib.putfile(host["hostname"], SSHKEY, l_path, f_path)
-        if not keystat: 
+        if not keystat:
             executeValidScript(SSHKEY, host["hostname"],host["hwp"], BID, ARCH, AMI, REGION, RHEL)
         else:
-	    print "The Amazon node : "+host["hostname"]+" is not accessible, waited for 210 sec. Skipping and proceeding with the next Profile"
+	        print "The Amazon node : "+host["hostname"]+" is not accessible, waited for 210 sec. Skipping and proceeding with the next Profile"
