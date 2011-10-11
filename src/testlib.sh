@@ -443,12 +443,14 @@ function test_swap_file()
 	if [ $UNAMEI == "i386" ]; then
 	 swap=`cat swap_partitions`
 	 fst=`cat /etc/fstab | grep swap | awk '{print $1}'`
-	 [ $swap != $fst ] && [ -b /dev/xvde3] && sed -i 's/\/dev\/xvda3/\/dev\/xvde3/' /etc/fstab 
-	 [ $swap != $fst ] && [ -b /dev/xvda3] && sed -i 's/\/dev\/xvde3/\/dev\/xvda3/' /etc/fstab 
+	 [ $swap != $fst ] && [ -b /dev/xvde3 ] && sed -i 's/\/dev\/xvda3/\/dev\/xvde3/' /etc/fstab 
+	 [ $swap != $fst ] && [ -b /dev/xvda3 ] && sed -i 's/\/dev\/xvde3/\/dev\/xvda3/' /etc/fstab 
+     swapon `cat swap_partitions` 2> /dev/null
 	 assert "/sbin/swapoff $swap && /sbin/swapon $swap"
 	fi
 
-# The below logic needs to be reversed, after checking the actual images. Actual images have swap partitions only for i386 and not for x86_64.
+# The below logic was reversed, after checking the images. 
+# The images have swap partitions only for i386(not for t1.micro) and not for x86_64.
 	new_test "## Verify swap size ... "
 	if [ $UNAMEI == "i386" ]; then
 	 size=`free | grep Swap | awk '{print $2}'`
