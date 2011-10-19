@@ -355,7 +355,7 @@ function test_verify_rpms()
         assert "cat ${file} | wc -l" "2"
         new_test "## Verify Version 2 ... "
         assert "/bin/rpm -q --queryformat '%{RELEASE}\n' redhat-release | cut -d. -f1,2" $RHELV # to-do, pass this in
-     else
+    else
 	file=/tmp/rpmqaV.txt
         new_test "## Verify RPMs ... " 
         /bin/rpm -Va --nomtime --nosize --nomd5 2>> $LOGFILE | sort -fu > ${file}
@@ -569,7 +569,7 @@ function test_gpg_keys()
 
 	new_test "## Verify GPG Keys ... "
 	if [ $BETA == 1 ]; then	
-	 assert "rpm -qa gpg-pubkey* | wc -l " 3
+	 assert "rpm -qa gpg-pubkey* | wc -l " 4
 	elif [ $RHEL_FOUND == "6.1" ]; then
 	 assert "rpm -qa gpg-pubkey* | wc -l " 2
 	else
@@ -699,10 +699,17 @@ function test_auditd()
 	assert "md5sum /etc/audit/audit.rules | cut -f 1 -d  \" \"" "f9869e1191838c461f5b9051c78a638d"
 
 	new_test "## Verify auditd.conf ... "
-	assert "md5sum /etc/audit/auditd.conf | cut -f 1 -d  \" \"" "612ddf28c3916530d47ef56a1b1ed1ed"
-
+    if [ $RHEL_FOUND == 6.2 ] ; then
+	    assert "md5sum /etc/audit/auditd.conf | cut -f 1 -d  \" \"" "e1886162554c18906df2ecd258aa4794"
+    else
+	    assert "md5sum /etc/audit/auditd.conf | cut -f 1 -d  \" \"" "612ddf28c3916530d47ef56a1b1ed1ed"
+    fi
 	new_test "## Verify auditd sysconfig ... "
-	assert "md5sum /etc/sysconfig/auditd | cut -f 1 -d  \" \"" "123beb3a97a32d96eba4f11509e39da2"
+    if [ $RHEL_FOUND == 6.2 ] ; then
+	    assert "md5sum /etc/sysconfig/auditd | cut -f 1 -d  \" \"" "d4d43637708e30418c30003e212f76fc"
+    else
+	    assert "md5sum /etc/sysconfig/auditd | cut -f 1 -d  \" \"" "123beb3a97a32d96eba4f11509e39da2"
+    fi
 }
 
 function test_uname()
