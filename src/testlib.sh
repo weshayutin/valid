@@ -309,7 +309,7 @@ function test_package_set()
         new_test  "## Verify no missing packages ... "
         file=/tmp/rpmqa
         rc "/bin/rpm -qa --queryformat='%{NAME}\n' > ${file}.tmp"
-        #/bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp  
+        #/bin/rpm -qa --queryformat="%{NAME}.%{ARCH}\n" > ${file}.tmp
         cat ${file}.tmp  |  sort -f > ${file}
 	if [ $RHEL == 5 ] ; then
          rc "comm -23 packages_5 ${file}"
@@ -317,9 +317,12 @@ function test_package_set()
 	elif [ $RHEL_FOUND == "6.0" ]; then
          rc "comm -23 packages_6 ${file}"
          comm -23 packages_6 ${file} > /tmp/package_diff
-	elif [ $RHEL_FOUND == "6.1" ]; then	
-	 rc "comm -23 packages_61 ${file}"
+	elif [ $RHEL_FOUND == "6.1" ]; then
+	     rc "comm -23 packages_61 ${file}"
          comm -23 packages_61 ${file} > /tmp/package_diff
+	elif [ $RHEL_FOUND == "6.2" ]; then
+	     rc "comm -23 packages_62 ${file}"
+         comm -23 packages_62 ${file} > /tmp/package_diff
 	else
          echo "VERSION NOT FOUND"
         fi
@@ -569,7 +572,7 @@ function test_gpg_keys()
 
 	new_test "## Verify GPG Keys ... "
 	if [ $BETA == 1 ]; then	
-	 assert "rpm -qa gpg-pubkey* | wc -l " 4
+	 assert "rpm -qa gpg-pubkey* | wc -l " 2
 	elif [ $RHEL_FOUND == "6.1" ]; then
 	 assert "rpm -qa gpg-pubkey* | wc -l " 2
 	else

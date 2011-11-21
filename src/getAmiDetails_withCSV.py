@@ -20,6 +20,9 @@ import ConfigParser
 config = ConfigParser.ConfigParser()
 config.read('/etc/validation.cfg')
 
+#us-west-2 has been used as SSHKEY_US_O and SSHKEY_NAME_US_O,  O stands for
+#Oregon
+
 SSHKEY_NAME_AP_S = config.get('SSH-Info', 'ssh-key-name_apsouth')
 SSHKEY_AP_S  = config.get('SSH-Info', 'ssh-key-path_apsouth')
 SSHKEY_NAME_AP_N = config.get('SSH-Info', 'ssh-key-name_apnorth')
@@ -30,6 +33,8 @@ SSHKEY_NAME_US_W = config.get('SSH-Info', 'ssh-key-name_uswest')
 SSHKEY_US_W  = config.get('SSH-Info', 'ssh-key-path_uswest')
 SSHKEY_NAME_US_E = config.get('SSH-Info', 'ssh-key-name_useast')
 SSHKEY_US_E = config.get('SSH-Info', 'ssh-key-path_useast')
+SSHKEY_NAME_US_O = config.get('SSH-Info', 'ssh-key-name_uswest-oregon')
+SSHKEY_US_O = config.get('SSH-Info', 'ssh-key-path_uswest-oregon')
 
 BZUSER = config.get('Bugzilla-Info', 'bugzilla_usr')
 BZPASS = config.get('Bugzilla-Info', 'bugzilla_pwd')
@@ -46,6 +51,8 @@ BZ = None
 val1 = {
     'SSHKEY_US_E':           SSHKEY_US_E,
     'SSHKEY_NAME_US_E':      SSHKEY_NAME_US_E,
+    'SSHKEY_US_O':           SSHKEY_US_O,
+    'SSHKEY_NAME_US_O':      SSHKEY_NAME_US_O,
     'SSHKEY_US_W':           SSHKEY_US_W,
     'SSHKEY_NAME_US_W':      SSHKEY_NAME_US_W,
     'SSHKEY_EU_W':           SSHKEY_EU_W,
@@ -225,7 +232,7 @@ c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 hwp_i386 = [c1Medium, t1Micro , m1Small ]
 #hwp_i386 = [c1Medium]
 hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m2Xlarge, m22Xlarge, m24Xlarge , c1Xlarge]
-#hwp_x86_64 = [c1Xlarge]
+#hwp_x86_64 = [m24Xlarge]
 
 #Use just one hwp for os tests
 #hwp_i386 = [c1Medium]
@@ -248,6 +255,9 @@ if CSV == 'true':
         if REGION == "us-east-1":
             SSHKEY = SSHKEY_US_E
             SSHKEYNAME = SSHKEY_NAME_US_E
+        elif REGION == "us-west-2":
+            SSHKEY = SSHKEY_US_O
+            SSHKEYNAME = SSHKEY_NAME_US_O
         elif REGION == "us-west-1":
             SSHKEY = SSHKEY_US_W
             SSHKEYNAME = SSHKEY_NAME_US_W
