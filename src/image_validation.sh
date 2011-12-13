@@ -14,9 +14,42 @@
 #
 # written by whayutin@redhat.com
 # modified by kbidarka@redhat.com for RHEL 6
+#             mkovacik@redhat.com
 
 FAILURES=0
 MEM_HWP=0
+
+# try to pushd to a `valid' source tree
+[ -z $BASEDIR ] && BASEDIR=/root/valid/src
+[ -d $BASEDIR ] || BASEDIR=$PWD
+set -e
+pushd $BASEDIR
+source testlib.sh
+set +e
+
+function list_tests(){
+	# return the list of defined tests
+	declare -F | cut -d\  -f3,3  | grep "^test_.*"
+}
+
+function filter_tests(){
+	# produces the list of tests to execute
+	# args:
+	# 	list of skip expressions to use with egrep
+	# return:
+	# 	list of passing function names
+
+	# @ is an identity element; hopefully, it won't ever match ;)
+	local skip="@,${@}"
+	skip="${skip%,}" # cut off trailing spaces; takes care of empty $@, too
+	# convert the coma or space separated list to an expression of elements
+	# separated by `|'
+	shopt -s extglob
+	skip="${skip//*([[:space:]])[,[:space:]]*([[:space:]])/|}"
+	shopt -u extglob
+	# figure out all test functions passing the skip list
+	list_tests | egrep -v "${skip}"
+}
 
 function usage()
 {
@@ -40,8 +73,11 @@ function usage()
 	   echo "--public-dns	     :: The Public-DNS Host name of the machine"
 	   echo "--ami-id	     :: The AMI ID"
 	   echo "--arch-id	     :: The Architecture i386 or x86_64 for the launched instance"
+	   echo "--skip-list	 :: A list of coma-separated expressions specifying test names
+	                            to skip. A skip-list might contain:
+                                    test_repos,test_yum_full_test,test_IPv6"
+	   echo "--list-tests    :: list available tests"
 }
-
 
 #cli
 for i in $*
@@ -86,14 +122,28 @@ for i in $*
       --arch-id=*)
 	  ARCH_ID="`echo $i | sed 's/[-a-zA-Z0-9]*=//'`"
 	  ;;
+      --skip-list=*)
+	  SKIP_LIST="${i#*=}"
+	  ;;
+      --list-tests)
+	  list_tests
+	  exit 0
+	  ;;
+
         *)
-         # unknown option 
+         # unknown option
 	   usage
            exit 1
            ;;
  esac
 done
 
+# initialize testlib
+set -e
+set -x
+_testlib_init
+set +x
+set +e
 
 if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]] || [[ -z $MEM_HWP ]]; then
  usage
@@ -102,8 +152,6 @@ fi
 
 
 
-pushd /root/valid/src
-source $PWD/testlib.sh
 
 ### DONT REMOVE OR COMMENT OUT ###
 echo "opening a bugzilla for logging purposes"
@@ -130,42 +178,12 @@ if [ $QUESTIONS == "no" ];then
 fi
 echo "##### START TESTS #####"
 echo ""
-test_uname
-test_disk_format
-test_disk_size
-[ ! -f /root/noswap ] && test_swap_file || echo "t1.micro doesn't require swap"
-test_selinux
-test_package_set
-test_verify_rpms
-test_gpg_keys
-#test_repos #remarking this out for now.. until additional repo's land. the yum tests should be sufficient
-test_yum_plugin
-if [ $yum_test == "yes" ];then
- test_yum_full_test
-else
- test_yum_general_test
-fi
-test_bash_history
-test_system_id
-test_cloud-firstboot
-test_nameserver
-test_group
-test_passwd
-test_inittab
-test_shells
-#test_IPv6 no longer needed
-test_networking
-test_iptables
-test_sshd
-test_chkconfig
-test_syslog
-test_auditd
-test_sshSettings
-test_libc6-xen.conf
-test_grub
-#installTestKernel
-test_resize2fs
-test_fetch_host_details
+# skip-list might contain
+# 	installTestKernel,test_repos,test_yum_full_test,test_IPv6,
+
+for f in $( filter_tests $SKIP_LIST ) ; do
+	$f
+done
 
 ### DONT REMOVE OR COMMENT OUT ###
 show_failures
@@ -182,9 +200,3 @@ echo "REBOOTING"
 reboot
 #im_exit
 ##################################
-
-
-
-
-
-

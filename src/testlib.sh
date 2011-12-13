@@ -14,44 +14,50 @@
 #
 # written by whayutin@redhat.com
 # modified by kbidarka@redhat.com
+#             mkovacik@redhat.com
 
-LOGFILE=$PWD/validate.log
-DLOG=" tee -a ${LOGFILE} " #Display and log output
-cat /dev/null > $LOGFILE
-RSLT=""
-LOGRESULT="echo ${RSLT} 1>>$LOGFILE 2>>$LOGFILE"
-DIFFDIR=$PWD
-SYSDATE=$( /bin/date '+%Y-%m-%d %H:%M' )
-UNAMEI=$( /bin/uname -i )
-BETA=0
+[ -n __TESTLIB__ ] && return 0
+__TESTLIB__=loaded
 
-
-echo ""
-echo ""
-
-txtred=$(tput setaf 1)    # Red
-txtgrn=$(tput setaf 2)    # Green
-txtrst=$(tput sgr0)       # Text reset
-
-### Begin:  Create a list of partitions
-rm -Rf disk_partitions
-rm -Rf swap_partitions
-mount | grep ^/dev | awk '{print $1}' >> disk_partitions
-parted -l | grep -B 5 swap | grep ^Disk | awk '{print $2}' | sed '$s/.$//' >> swap_partitions
-
-rm -Rf tmp1_partitions tmp2_partitions
-### End:  Create a list of partitions
-
-RHEL=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $1}'`
-RHELU=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $2}'`
-RHEL_FOUND=$RHEL.$RHELU
-KERNEL=""
-KERNEL_UPDATED=""
-TEST_CURRENT=""
-TEST_FAILED=""
-echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
-
-
+function _testlib_init(){
+	[ -n $__TESTLIB_INIT__] && return 0
+	LOGFILE=$PWD/validate.log
+	DLOG=" tee -a ${LOGFILE} " #Display and log output
+	cat /dev/null > $LOGFILE
+	RSLT=""
+	LOGRESULT="echo ${RSLT} 1>>$LOGFILE 2>>$LOGFILE"
+	DIFFDIR=$PWD
+	SYSDATE=$( /bin/date '+%Y-%m-%d %H:%M' )
+	UNAMEI=$( /bin/uname -i )
+	BETA=0
+	
+	
+	echo ""
+	echo ""
+	
+	txtred=$(tput setaf 1)    # Red
+	txtgrn=$(tput setaf 2)    # Green
+	txtrst=$(tput sgr0)       # Text reset
+	
+	### Begin:  Create a list of partitions
+	rm -Rf disk_partitions
+	rm -Rf swap_partitions
+	mount | grep ^/dev | awk '{print $1}' >> disk_partitions
+	parted -l | grep -B 5 swap | grep ^Disk | awk '{print $2}' | sed '$s/.$//' >> swap_partitions
+	
+	rm -Rf tmp1_partitions tmp2_partitions
+	### End:  Create a list of partitions
+	
+	RHEL=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $1}'`
+	RHELU=`cat /etc/redhat-release | awk '{print $7}' | awk -F. '{print $2}'`
+	RHEL_FOUND=$RHEL.$RHELU
+	KERNEL=""
+	KERNEL_UPDATED=""
+	TEST_CURRENT=""
+	TEST_FAILED=""
+	echo "IMAGE ID= ${IMAGEID}" >> $LOGFILE
+	__TESTLIB_INIT__=initialized
+}
 
 function new_test()
 {
@@ -442,6 +448,10 @@ function test_bash_history()
 
 function test_swap_file()
 {
+	if [ -f /root/noswap ] ; then
+		echo "/root/noswap present -- this machine doesn't require swap" >> $LOGFILE
+		return 0
+	fi
 	new_test "## Verify turning on/off swap file ... "
 	if [ $UNAMEI == "i386" ]; then
 	 swap=`cat swap_partitions`
