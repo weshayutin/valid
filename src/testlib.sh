@@ -16,11 +16,11 @@
 # modified by kbidarka@redhat.com
 #             mkovacik@redhat.com
 
-[ -n __TESTLIB__ ] && return 0
+[ -n "$__TESTLIB__" ] && return 0
 __TESTLIB__=loaded
 
 function _testlib_init(){
-	[ -n $__TESTLIB_INIT__] && return 0
+	[ -n "$__TESTLIB_INIT__" ] && return 0
 	LOGFILE=$PWD/validate.log
 	DLOG=" tee -a ${LOGFILE} " #Display and log output
 	cat /dev/null > $LOGFILE
