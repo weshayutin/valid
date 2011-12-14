@@ -3,7 +3,7 @@
 from pprint import pprint
 from boto import ec2
 import boto, thread
-import sys, time, optparse, os
+import sys, time, argparse, os
 import csv
 #from boto.ec2.blockdevicemapping import BlockDeviceMapping
 from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping
@@ -11,14 +11,25 @@ from bugzilla.bugzilla3 import Bugzilla36
 import rhui_lib
 import ConfigParser
 
-#def main(argv):
-#    try:
-#        opts, args = getopt.getopt(argv, "hr:vb:a:", ["help","region", "version","bugzilla","ami-number"])
-#    except getopt.GetoptError:
-#        usage()
-#        sys.exit(2)
 config = ConfigParser.ConfigParser()
 config.read('/etc/validation.cfg')
+
+argparser = argparse.ArgumentParser(description=\
+		'Remotely execute validation testcases')
+argparser.add_argument('--skip-tests', metavar='<expr>',nargs="*",
+		help="space-separated expressions describing tests to skip")
+argparser.add_argument('--list-tests', action='store_const', const=True,
+		default=False, help='display available test names and exit')
+args = argparser.parse_args()
+
+if args.skip_tests:
+	SKIPLIST=",".join(args.skip_tests)
+else:
+	SKIPLIST=""
+
+if args.list_tests:
+	os.system("./image_validation.sh --list-tests")
+	sys.exit()
 
 #us-west-2 has been used as SSHKEY_US_O and SSHKEY_NAME_US_O,  O stands for
 #Oregon
@@ -76,7 +87,6 @@ for v in val1:
         sys.exit()
 
 CSVFILE = "test1.csv"
-parser = optparse.OptionParser()
 
 def addBugzilla(BZ, AMI, RHEL, ARCH, REGION):
     if BZ is None:
@@ -153,7 +163,7 @@ def startInstance(ec2connection, hardwareProfile, ARCH, RHEL, AMI, SSHKEYNAME):
     # check for console output here to make sure ssh is up
     return publicDNS
 
-def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
+def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL, SKIPLIST=""):
     filepath = BASEDIR
     serverpath = "/root/valid"
     commandPath = "/root/valid/src"
@@ -188,7 +198,7 @@ def executeValidScript(SSHKEY, publicDNS, hwp, BZ, ARCH, AMI, REGION, RHEL):
 
 
 #    command = commandPath+"/image_validation.sh --imageID="+IGNORE+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]
-    command = commandPath+"/image_validation.sh --skip-list="IPv6,full_test" --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password="+BZPASS+" --bugzilla-num="+BZ+ " --memory="+hwp["memory"]+" --public-dns="+publicDNS+" --ami-id="+AMI+" --arch-id="+ARCH
+    command = commandPath+"/image_validation.sh --skip-list='"+SKIPLIST+"' --imageID="+AMI+"_"+REGION+"_"+hwp["name"]+" --RHEL="+RHEL+" --full-yum-suite=yes --skip-questions=yes --bugzilla-username="+BZUSER+" --bugzilla-password='"+BZPASS+"' --bugzilla-num="+BZ+ " --memory="+hwp["memory"]+" --public-dns="+publicDNS+" --ami-id="+AMI+" --arch-id="+ARCH
 
     print "nohup ssh -n -f -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "+SSHKEY+ " root@"+publicDNS+" "+command
     print ""
@@ -297,7 +307,7 @@ if CSV == 'true':
         for host in publicDNS:
             keystat = rhui_lib.putfile(host["hostname"], SSHKEY, l_path, f_path)
             if not keystat:
-                executeValidScript(SSHKEY, host["hostname"], host["hwp"], BID, ARCH, AMI, REGION, RHEL)
+                executeValidScript(SSHKEY, host["hostname"], host["hwp"], BID, ARCH, AMI, REGION, RHEL, SKIPLIST)
             else:
 	            print "The Amazon node : "+host["hostname"]+" is not accessible, waited for 210 sec. Skipping and proceeding with the next Profile"
 else:
@@ -326,6 +336,6 @@ else:
     for host in publicDNS:
         keystat = rhui_lib.putfile(host["hostname"], SSHKEY, l_path, f_path)
         if not keystat:
-            executeValidScript(SSHKEY, host["hostname"],host["hwp"], BID, ARCH, AMI, REGION, RHEL)
+            executeValidScript(SSHKEY, host["hostname"],host["hwp"], BID, ARCH, AMI, REGION, RHEL, SKIPLIST)
         else:
 	        print "The Amazon node : "+host["hostname"]+" is not accessible, waited for 210 sec. Skipping and proceeding with the next Profile"

@@ -22,10 +22,8 @@ MEM_HWP=0
 # try to pushd to a `valid' source tree
 [ -z $BASEDIR ] && BASEDIR=/root/valid/src
 [ -d $BASEDIR ] || BASEDIR=$PWD
-set -e
-pushd $BASEDIR
+pushd $BASEDIR > /dev/null
 source testlib.sh
-set +e
 
 function list_tests(){
 	# return the list of defined tests
@@ -137,13 +135,8 @@ for i in $*
            ;;
  esac
 done
-
 # initialize testlib
-set -e
-set -x
 _testlib_init
-set +x
-set +e
 
 if [[ -z $IMAGEID ]] || [[ -z $RHELV ]] ||  [[ -z $yum_test ]] || [[ -z $BUG_USERNAME ]] || [[ -z $BUG_PASSWORD ]] || [[ -z $MEM_HWP ]]; then
  usage
