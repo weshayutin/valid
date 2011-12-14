@@ -1,20 +1,20 @@
 Name: validate
-Version: 6.1	
+Version: 6.1
 Release: 1
-Summary: Validates a cloud providers image of Red Hat Enterprise Linux	
+Summary: Validates a cloud providers image of Red Hat Enterprise Linux
 
 Group: Development/Libraries
 License: GPL
-URL: http://github.com/weshayutin/valid	
+URL: http://github.com/weshayutin/valid
 Source0: %{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}
 BuildArch:  noarch
 
-# BuildRequires:	
-# Requires:	
+# BuildRequires:
+# Requires:
 
 %description
-A shell script that will run tests to validate that the image of Red Hat Enterprise Linux meets or exceeds the minimum requirements as defined by Red Hat. 
+A shell script that will run tests to validate that the image of Red Hat Enterprise Linux meets or exceeds the minimum requirements as defined by Red Hat.
 
 
 %prep
